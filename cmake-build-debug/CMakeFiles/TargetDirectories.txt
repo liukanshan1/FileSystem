@@ -1,5 +1,6 @@
 /home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/file_system.dir
 /home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/shell.dir
 /home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/shell2.dir
+/home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/test.dir
 /home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/edit_cache.dir
 /home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/rebuild_cache.dir

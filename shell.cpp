@@ -73,6 +73,7 @@ int main() {
     if (shared_memory == (char*)(-1)) {
         exit(1);
     }
+
     // 创建或连接到信号量
     int semid = semget(SEMAPHORE_KEY, 1, 0666 | IPC_CREAT);
     if (semid == -1) {

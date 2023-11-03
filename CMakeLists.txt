@@ -14,5 +14,4 @@ link_directories(/usr/local/lib)
 add_executable(file_system file_system.cpp)
 add_executable(shell shell.cpp)
 add_executable(shell2 shell.cpp)
-
-#target_link_libraries(shell boost_thread boost_system)
+add_executable(test test.cpp)
