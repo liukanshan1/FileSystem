@@ -1,0 +1,78 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "file_system",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "file_system::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-file_system-Debug-c6d3320b8eeb48ffcd76.json",
+					"name" : "file_system",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "shell::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-shell-Debug-ff6589122ffa3166d5be.json",
+					"name" : "shell",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "shell2::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-shell2-Debug-767b4901f0ef974eeae4.json",
+					"name" : "shell2",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/lks/Desktop/Repo/file-system/cmake-build-debug",
+		"source" : "/home/lks/Desktop/Repo/file-system"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}
