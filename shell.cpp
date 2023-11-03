@@ -1,20 +1,17 @@
-#include <stdio.h>
 #include <string.h>
 #include <iostream>
-#include <sys/wait.h>
-#include <stdlib.h>
-#include <sys/shm.h>
-#include <sys/ipc.h>
-#include <termios.h>
 #include <sstream>
 #include "share_memory.h"
 #include <vector>
 #include <iomanip>
 #include <boost/algorithm/string.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/sync/named_semaphore.hpp>
 
 #define SIZE 1024
 using namespace std;
 using namespace boost::algorithm;
+using namespace boost::interprocess;
 
 std::vector<std::string> cut_command(std::string command) {
     vector<string> res;
@@ -64,58 +61,37 @@ std::string num_to_str(int num){
 
 int main() {
     // 创建或连接到共享内存
-    int shmid = shmget(SHARED_MEMORY_KEY, SHARED_MEMORY_SIZE, 0666 | IPC_CREAT);
-    if (shmid == -1) {
-        exit(1);
-    }
-    // 连接到共享内存
-    char* shared_memory = (char*)shmat(shmid, (void*)0, 0);
-    if (shared_memory == (char*)(-1)) {
-        exit(1);
-    }
-
+    managed_shared_memory shm(open_or_create, "FileSystemMessage", 32000);
     // 创建或连接到信号量
-    int semid = semget(SEMAPHORE_KEY, 1, 0666 | IPC_CREAT);
-    if (semid == -1) {
-        exit(1);
-    }
+    named_semaphore sig(open_or_create, "msg_signal", 0);
 
     // 显示欢迎界面
     cout << "-------------file system-------------" << endl;
     cout << endl;
     int userId;
-    std::string password;
     std::string curr_path;
     bool is_login = false; // 是否已经登录
     bool is_writing = false; // 是否正在写文件
     while (true) {
-        // cmd：共享内存
-        struct Message* cmd = (struct Message*)shared_memory;
+        Message message = Message();
         char command[SIZE];
         memset(command, '\0', SIZE);
         if(!is_login){
             std::cout << "Please enter your user ID: ";
             std::cin >> userId;
-            std::cin.ignore();
-            cmd->userId = userId;
-            std::cout << "Please enter your password: ";
-            // 设置密码不可见
-            struct termios original;
-            tcgetattr(STDIN_FILENO, &original);
-            struct termios no_echo = original;
-            no_echo.c_lflag &= ~ECHO;
-            tcsetattr(STDIN_FILENO, TCSANOW, &no_echo);
-            // std::cin >> password;
-            // std::cin.ignore();
-            char ch; 
-            while((ch = getchar()) != '\n'){
-                password.push_back(ch);
-                std::cout << '*' << std::flush;
-            }
-            tcsetattr(STDIN_FILENO, TCSANOW, &original);
-            std::cout << std::endl;
-            strcpy(command, "login");
-            strncpy(cmd->message, command, sizeof(cmd->message));
+            // 向共享内存写入命令
+            strncpy(message.message, command, sizeof(message.message));
+            message.userId = userId;
+            strncpy(command, "login", sizeof(command));
+            // 创建或连接到信号量
+            ipcdetail::char_ptr_holder<char> shellid = ("shell" + num_to_str(userId)).c_str();
+            named_semaphore::remove(shellid);
+            named_semaphore sig(open_or_create, shellid, 0);
+
+            auto msg = shm.find_or_construct<Message>("msg0")(message);
+            auto vmsg = shm.find_or_construct<bool>("vmsg0")(false);
+            *msg = message;
+            *vmsg = true;
         }
         else if(is_writing){
             // 输入文件内容，按ESC+Enter结束
@@ -137,28 +113,43 @@ int main() {
                 }
             }
             // 向共享内存写入命令
-            strncpy(cmd->message, command, sizeof(cmd->message));
-            cmd->userId = userId;
-        }else{
-            cmd->userId = userId;
-            std::cin.getline(command, sizeof(command));
-            // 向共享内存写入命令
-            // cmd->userId = userId;
-            strncpy(cmd->message, command, sizeof(cmd->message));
-            cmd->userId = userId;
+            strncpy(message.message, command, sizeof(message.message));
+            message.userId = userId;
+            ipcdetail::char_ptr_holder<char> vmsgid = ("vmsg" + num_to_str(userId)).c_str();
+            auto vmsg = shm.find_or_construct<bool>(vmsgid)(true);
+            *vmsg = true;
+            ipcdetail::char_ptr_holder<char> msgid = ("msg" + num_to_str(userId)).c_str();
+            auto msg = shm.find_or_construct<Message>(msgid)(message);
+            *msg = message;
         }
-
+        else{
+            //std::cin.getline(command, sizeof(command));
+            cin>>command;
+            // 向共享内存写入命令
+            strncpy(message.message, command, sizeof(message.message));
+            message.userId = userId;
+            ipcdetail::char_ptr_holder<char> vmsgid = ("vmsg" + num_to_str(userId)).c_str();
+            auto vmsg = shm.find_or_construct<bool>(vmsgid)(true);
+            *vmsg = true;
+            ipcdetail::char_ptr_holder<char> msgid = ("msg" + num_to_str(userId)).c_str();
+            auto msg = shm.find_or_construct<Message>(msgid)(message);
+            *msg = message;
+        }
         // 发送信号通知simdisk处理命令
-        struct sembuf sops;
-        sops.sem_num = 0;
-        sops.sem_op = 1;
-        sops.sem_flg = 0;
-        semop(semid, &sops, 1);
+        sig.post();
+
         // 等待simdisk的回信
-        sops.sem_op = -1;
-        semop(semid, &sops, 1);
-        string response = shared_memory + sizeof(struct Message);
-        string prefix = "user" + num_to_str(userId) + "@PERKZ:~";
+        ipcdetail::char_ptr_holder<char> shellid = ("shell" + num_to_str(userId)).c_str();
+        named_semaphore shell_sig(open_or_create, shellid, 0);
+        shell_sig.wait();
+
+        // 从共享内存中读取simdisk的回信
+        Message resp_msg = Message();
+        ipcdetail::char_ptr_holder<char> respid = ("resp" + num_to_str(userId)).c_str();
+        auto* resp = shm.find_or_construct<Message>(respid)(resp_msg);
+        string response = resp->message;
+
+        string prefix = "user" + num_to_str(userId) + "@cyx:~";
         // string response = cmd->message;
         // 从共享内存中读取simdisk的回信
         if(is_writing){
@@ -170,9 +161,12 @@ int main() {
         else if(strcmp(command, "exit") == 0){
             // 退出文件系统
             std::cout << response;
+            ipcdetail::char_ptr_holder<char> shellid = ("shell" + num_to_str(userId)).c_str();
+            named_semaphore::remove(shellid);
             break;
         }
         else if(strcmp(command, "login") == 0){
+            is_login = true;
             // 登录
             if(response == "You have already logged in!\n"){
                 std::cout << response<< std::endl;
@@ -216,7 +210,5 @@ int main() {
             std::cout << prefix << curr_path << "$ " << std::flush;
         }
     }
-    // 分离共享内存
-    shmdt(shared_memory);
     return 0;
 }
