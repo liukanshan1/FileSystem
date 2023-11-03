@@ -1,16 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <sys/shm.h>
 #include <sys/ipc.h>
 #include <termios.h>
-#include <fcntl.h>
-#include <fstream>
 #include <sstream>
-#include "share.h"
+#include "share_memory.h"
 #include <vector>
 #include <iomanip>
 

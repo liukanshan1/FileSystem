@@ -1,9 +1,8 @@
-#include "simdisk.h"
+#include "simdisk.hpp"
 #include <sstream>
 #include <sys/shm.h>
 #include <sys/ipc.h>
 #include <cstring>
-
 using namespace std;
 
 vector<int> user_record;// 用户记录

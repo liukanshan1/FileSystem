@@ -23,7 +23,7 @@
 #include <bitset>
 #include <sys/stat.h>
 #include <vector>
-#include "share.h"
+#include "share_memory.h"
 #include <fstream>
 
 #define BLOCK_SIZE 1024
