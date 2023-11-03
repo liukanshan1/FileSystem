@@ -43,22 +43,22 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "file_system::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-file_system-Debug-c6d3320b8eeb48ffcd76.json",
+					"jsonFile" : "target-file_system-Debug-0a479d847abd5faa3e1b.json",
 					"name" : "file_system",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "shell::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-shell-Debug-ff6589122ffa3166d5be.json",
+					"jsonFile" : "target-shell-Debug-8f6492c0b0405e5fb31a.json",
 					"name" : "shell",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
-					"id" : "shell2::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-shell2-Debug-767b4901f0ef974eeae4.json",
-					"name" : "shell2",
+					"id" : "shell23::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-shell23-Debug-c4fad7544979ef858f44.json",
+					"name" : "shell23",
 					"projectIndex" : 0
 				}
 			]
@@ -73,6 +73,6 @@
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 3
+		"minor" : 5
 	}
 }

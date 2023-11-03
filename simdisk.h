@@ -158,8 +158,8 @@ void init() {
         }
         curr_dir->inode->parent = 0;
         curr_dir->inode->name = "~";
-        curr_dir->inode->creator = "perkz";
-        curr_dir->inode->last_modified = "2003-09-22 23:23:23";
+        curr_dir->inode->creator = "cyx";
+        curr_dir->inode->last_modified = "2023-09-22 13:23:23";
         curr_dir->name = "~";
         write_inode(curr_dir->inode, curr_dir->inode->block_seq);
     }

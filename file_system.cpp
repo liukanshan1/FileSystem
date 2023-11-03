@@ -1,16 +1,8 @@
-/**
- * @brief This is the main function of the file system program. It initializes shared memory and semaphore, and then enters a loop to wait for commands from the shell. It executes the commands and stores the results in shared memory for the shell to retrieve.
- * 
- * @return int Returns 0 if the program runs successfully.
- */
 #include "simdisk.h"
-#include <termios.h>
-#include <unistd.h>
 #include <sstream>
 #include <sys/shm.h>
 #include <sys/ipc.h>
-#include <fcntl.h>
-#include <string.h>
+#include <cstring>
 
 using namespace std;
 
