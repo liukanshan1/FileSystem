@@ -31,21 +31,7 @@ std::vector<std::string> cut_command(std::string command) {
     return res;
 }
 
-void show_simdisk(){
-    cout << "\033[2J\033[1;1H";
-    cout << "-------------Welcome to Perkz's file system!-------------" << endl;
-    const char* text = R"(   ___     ___   __  __    ___     ___     ___    _  __    
-  / __|   |_ _| |  \/  |  |   \   |_ _|   / __|  | |/ /    
-  \__ \    | |  | |\/| |  | |) |   | |    \__ \  | ' <     
-  |___/   |___| |_|__|_|  |___/   |___|   |___/  |_|\_\    
-_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_   
-"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'")";
-    std::cout << text << std::endl;
-    // cout << "---------------------------------------------------------" << endl;
-    cout << "----------Type 'info' to get more information.-----------" << endl;
-    cout << "----------Type 'help' to know about commands.------------" << endl;
-    cout << "---------------------------------------------------------" << endl;
-}
+
 
 void show_help(){
     // 输出绿色字体
@@ -91,31 +77,25 @@ int main() {
     // 创建或连接到共享内存
     int shmid = shmget(SHARED_MEMORY_KEY, SHARED_MEMORY_SIZE, 0666 | IPC_CREAT);
     if (shmid == -1) {
-        perror("shmget");
         exit(1);
     }
-
     // 连接到共享内存
     char* shared_memory = (char*)shmat(shmid, (void*)0, 0);
     if (shared_memory == (char*)(-1)) {
-        perror("shmat");
         exit(1);
     }
-
     // 创建或连接到信号量
     int semid = semget(SEMAPHORE_KEY, 1, 0666 | IPC_CREAT);
     if (semid == -1) {
-        perror("semget");
         exit(1);
     }
-    //清除控制台
-    // cout << "\033[2J\033[1;1H";
+
     // 显示欢迎界面
-    show_simdisk();
+    cout << "-------------file system-------------" << endl;
     cout << endl;
     int userId;
     std::string password;
-    std::string curr_path = "";    
+    std::string curr_path;
     bool is_login = false; // 是否已经登录
     bool is_writing = false; // 是否正在写文件
     while (true) {
