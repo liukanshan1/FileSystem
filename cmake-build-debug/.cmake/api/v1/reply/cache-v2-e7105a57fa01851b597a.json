@@ -115,7 +115,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/232.9921.42/bin/cmake/linux/x64/bin/cmake"
+			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake"
 		},
 		{
 			"name" : "CMAKE_CPACK_COMMAND",
@@ -127,7 +127,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/232.9921.42/bin/cmake/linux/x64/bin/cpack"
+			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cpack"
 		},
 		{
 			"name" : "CMAKE_CTEST_COMMAND",
@@ -139,7 +139,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/232.9921.42/bin/cmake/linux/x64/bin/ctest"
+			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/ctest"
 		},
 		{
 			"name" : "CMAKE_CXX_COMPILER",
@@ -655,7 +655,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/232.9921.42/bin/ninja/linux/x64/ninja"
+			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja"
 		},
 		{
 			"name" : "CMAKE_MODULE_LINKER_FLAGS",
@@ -887,7 +887,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/232.9921.42/bin/cmake/linux/x64/share/cmake-3.26"
+			"value" : "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.26"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",

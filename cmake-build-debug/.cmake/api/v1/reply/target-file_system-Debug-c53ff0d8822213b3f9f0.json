@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "shell"
+			"path" : "file_system"
 		}
 	],
 	"backtrace" : 1,
@@ -10,7 +10,8 @@
 	{
 		"commands" : 
 		[
-			"add_executable"
+			"add_executable",
+			"link_directories"
 		],
 		"files" : 
 		[
@@ -24,7 +25,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 7,
+				"line" : 14,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 11,
 				"parent" : 0
 			}
 		]
@@ -53,7 +60,7 @@
 			]
 		}
 	],
-	"id" : "shell::@6890427a1f51a3e7e1df",
+	"id" : "file_system::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -65,12 +72,17 @@
 			{
 				"fragment" : "",
 				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-L/usr/local/lib",
+				"role" : "libraryPath"
 			}
 		],
 		"language" : "CXX"
 	},
-	"name" : "shell",
-	"nameOnDisk" : "shell",
+	"name" : "file_system",
+	"nameOnDisk" : "file_system",
 	"paths" : 
 	{
 		"build" : ".",
@@ -91,7 +103,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "shell.cpp",
+			"path" : "file_system.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

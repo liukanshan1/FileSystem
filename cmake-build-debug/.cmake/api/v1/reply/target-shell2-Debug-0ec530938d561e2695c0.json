@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "shell23"
+			"path" : "shell2"
 		}
 	],
 	"backtrace" : 1,
@@ -10,7 +10,8 @@
 	{
 		"commands" : 
 		[
-			"add_executable"
+			"add_executable",
+			"link_directories"
 		],
 		"files" : 
 		[
@@ -24,7 +25,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 8,
+				"line" : 16,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 11,
 				"parent" : 0
 			}
 		]
@@ -53,7 +60,7 @@
 			]
 		}
 	],
-	"id" : "shell23::@6890427a1f51a3e7e1df",
+	"id" : "shell2::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -65,12 +72,17 @@
 			{
 				"fragment" : "",
 				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-L/usr/local/lib",
+				"role" : "libraryPath"
 			}
 		],
 		"language" : "CXX"
 	},
-	"name" : "shell23",
-	"nameOnDisk" : "shell23",
+	"name" : "shell2",
+	"nameOnDisk" : "shell2",
 	"paths" : 
 	{
 		"build" : ".",

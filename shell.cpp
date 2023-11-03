@@ -10,28 +10,17 @@
 #include "share_memory.h"
 #include <vector>
 #include <iomanip>
+#include <boost/algorithm/string.hpp>
 
 #define SIZE 1024
 using namespace std;
+using namespace boost::algorithm;
 
 std::vector<std::string> cut_command(std::string command) {
-    std::vector<std::string> res;
-    std::string command_token;
-    for (int i = 0; i < (int)command.size(); ++i) {
-        if (command[i] != ' ') {
-            command_token.push_back(command[i]);
-        } else {
-            if (!command_token.empty()) {
-                res.push_back(command_token);
-                command_token.clear();
-            }
-        }
-    }
-    if (!command_token.empty()) res.push_back(command_token);
+    vector<string> res;
+    split(res, command, boost::is_any_of(" "));
     return res;
 }
-
-
 
 void show_help(){
     // 输出绿色字体
@@ -61,7 +50,7 @@ void show_help(){
     std::cout << std::setw(15) << "check";
     std::cout << std::setw(15) << "Check if the filesystem is OK" << std::endl;
     std::cout << std::setw(15) << "exit";
-    std::cout << std::setw(15) << "Exit the filesystem" << std::endl;
+    std::cout << std::setw(15) << "Exit the system" << std::endl;
     std::cout << "\033[1;32m------------------------------------------------------\033[0m" << std::endl;
 }
 
