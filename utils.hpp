@@ -47,7 +47,6 @@ vector<std::string> cut_command(string command) {
 
 void show_help(){
     // 输出绿色字体
-    std::cout << "\033[1;32m-------------------------Help-------------------------\033[0m" << std::endl;
     std::cout << std::left << std::setw(15) << "Command";
     std::cout << std::setw(15) << "Description" << std::endl;
     std::cout << std::setw(15) << "info";
@@ -74,5 +73,4 @@ void show_help(){
     std::cout << std::setw(15) << "Check if the filesystem is OK" << std::endl;
     std::cout << std::setw(15) << "exit";
     std::cout << std::setw(15) << "Exit the system" << std::endl;
-    std::cout << "\033[1;32m------------------------------------------------------\033[0m" << std::endl;
 }

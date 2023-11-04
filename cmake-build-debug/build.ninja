@@ -136,38 +136,6 @@ build shell2: CXX_EXECUTABLE_LINKER__shell2_Debug CMakeFiles/shell2.dir/shell.cp
   TARGET_FILE = shell2
   TARGET_PDB = shell2.dbg
 
-# =============================================================================
-# Object build statements for EXECUTABLE target test
-
-
-#############################################
-# Order-only phony target for test
-
-build cmake_object_order_depends_target_test: phony || CMakeFiles/test.dir
-
-build CMakeFiles/test.dir/test.cpp.o: CXX_COMPILER__test_unscanned_Debug /home/lks/Desktop/Repo/file-system/test.cpp || cmake_object_order_depends_target_test
-  DEP_FILE = CMakeFiles/test.dir/test.cpp.o.d
-  FLAGS = -g -std=gnu++14 -fdiagnostics-color=always
-  OBJECT_DIR = CMakeFiles/test.dir
-  OBJECT_FILE_DIR = CMakeFiles/test.dir
-
-
-# =============================================================================
-# Link build statements for EXECUTABLE target test
-
-
-#############################################
-# Link the executable test
-
-build test: CXX_EXECUTABLE_LINKER__test_Debug CMakeFiles/test.dir/test.cpp.o
-  FLAGS = -g
-  LINK_PATH = -L/usr/local/lib
-  OBJECT_DIR = CMakeFiles/test.dir
-  POST_BUILD = :
-  PRE_LINK = :
-  TARGET_FILE = test
-  TARGET_PDB = test.dbg
-
 
 #############################################
 # Utility command for edit_cache
@@ -202,7 +170,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 #############################################
 # Folder: /home/lks/Desktop/Repo/file-system/cmake-build-debug
 
-build all: phony file_system shell shell2 test
+build all: phony file_system shell shell2
 
 # =============================================================================
 # Built-in targets

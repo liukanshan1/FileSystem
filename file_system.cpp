@@ -1,4 +1,4 @@
-#include "simdisk.hpp"
+#include "disk.hpp"
 #include <sstream>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_semaphore.hpp>
@@ -128,11 +128,10 @@ int main() {
             *vcmd = false;
             Message* cmd = shm.find<Message>("msg0").first;
             int userId = cmd->userId;
-            std::cout << "已登录用户: ";
             string s;
             string id = num_to_str(userId);
             if (!is_login(userId)) {
-                std::cout << userId << " login successfully!" << std::endl;
+                std::cout << userId << "login successfully!" << std::endl;
                 response = "Login successfully!\n";
                 // 创建用户
                 s = "vmsg";

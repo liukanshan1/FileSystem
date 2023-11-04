@@ -1,5 +1,3 @@
-#ifndef SIMDISK_H_INCLUDED
-#define SIMDISK_H_INCLUDED
 #include <sstream>
 #include <chrono>
 #include <iomanip>
@@ -42,12 +40,6 @@ struct Dir {
     std::map<std::string, Dir*> files;// 子目录/文件
 };
 
-struct Superblock {
-    int block_size = BLOCK_SIZE;
-    int block_num = BLOCK_SIZE * 100;
-    int inode_num = BLOCK_SIZE * 100; 
-};
-
 /*----------------------------------------------基本结构定义-----------------------------------------------*/
 /*--------------------------------------------------------------------------------------------------------*/
 
@@ -60,7 +52,6 @@ std::map<std::string, int> file_lock; // 文件锁
 std::map<int, std::string> file_lock_name; // 文件锁 用户名-文件名
 std::map<int, int> file_lock_seq; // 文件锁 用户名-文件块号
 std::map<int, Dir*> user_dir; // 用户目录 用户名-目录指针
-// std::fstream disk = std::fstream("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
 
 /*----------------------------------------------函数表------------------------------------------------------*/
 /*--------------------------------------------------------------------------------------------------------*/
@@ -75,7 +66,6 @@ void remove_user_ptr(int userId);
 // 输出转化
 std::string int_to_hex(int num);
 std::string get_current_time();
-std::string num_to_str(int num);
 
 // 路径切分
 std::string show_path();
@@ -1405,8 +1395,3 @@ std::string check(){
 void exit() {
     std::cout<<"exit"<<std::endl;
 }
-
-/*--------------------------------------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-#endif 

@@ -26,7 +26,7 @@ int main() {
     string prefix;
 
     // login
-    std::cout << "Please enter your user ID: ";
+    std::cout << "Login as (Positive User ID): ";
     std::cin >> userId;
     user_id = num_to_str(userId);
     // 向共享内存写入命令
@@ -125,7 +125,7 @@ int main() {
         else if(cut_command(command)[0] == "write"){
             // 写文件
             std::cout << response << std::flush;
-            if(response == "Please input the content you want to write into the file. Press 'ESC + Enter' to finish.\n"){
+            if(response == "Input the content you want to write into the file. Press 'ESC + Enter' to finish.\n"){
                 is_writing = true;
             }
             else{
