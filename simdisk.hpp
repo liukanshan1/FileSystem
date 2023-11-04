@@ -1,18 +1,3 @@
-/**
- * simdisk.h
- * 
- * This header file defines the basic structures and functions for a simple file system simulation.
- * 
- * The file system is based on a tree structure, with each directory represented by a Dir struct and each file represented by an Inode struct.
- * 
- * The file system is stored in a binary file named "disk.bin".
- * 
- * The functions in this file include initialization, user management, path manipulation, directory tree operations, bit map operations, inode read/write operations, block read/write operations, and command line operations.
- * 
- * Author: Perkz
- * Date: 2023-10-07
- */
-
 #ifndef SIMDISK_H_INCLUDED
 #define SIMDISK_H_INCLUDED
 #include <sstream>
@@ -23,9 +8,15 @@
 #include <bitset>
 #include <sys/stat.h>
 #include <vector>
-#include "share_memory.h"
 #include <fstream>
-
+#include <cstring>
+#include <cstdlib>
+#include <sys/ipc.h>
+#include <unistd.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include <map>
+#include "utils.hpp"
 #define BLOCK_SIZE 1024
 
 /*------------------------------------------------基本结构-------------------------------------------------*/
@@ -216,13 +207,6 @@ std::string get_current_time() {
     std::stringstream ss;
     ss << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S");
     return ss.str();
-}
-
-std::string num_to_str(int num){
-    std::stringstream ss;
-    ss << num;
-    std::string str = ss.str();
-    return str;
 }
 
 /*----------------------------------------------inode读写--------------------------------------------------*/
@@ -514,26 +498,6 @@ std::string show_path() {
         path_return += path[i];
     }
     return path_return;
-}
-
-/***
- * 切分命令
-*/
-std::vector<std::string> cut_command(std::string command) {
-    std::vector<std::string> res;
-    std::string token;
-    for (int i = 0; i < (int)command.size(); ++i) {
-        if (command[i] != ' ') {
-            token.push_back(command[i]);
-        } else {
-            if (!token.empty()) {
-                res.push_back(token);
-                token.clear();
-            }
-        }
-    }
-    if (!token.empty()) res.push_back(token);
-    return res;
 }
 
 /***

@@ -7,13 +7,24 @@
 using namespace std;
 using namespace boost;
 
-vector<int> user_record;// 用户记录
+vector<User> user_record;// 用户记录
 
 void remove_user(int userId) {
-    auto it = find(user_record.begin(), user_record.end(), userId);
-    if (it != user_record.end()) {
-        user_record.erase(it);
+    for (auto it = user_record.begin(); it != user_record.end(); it++) {
+        if (it->userId == userId) {
+            user_record.erase(it);
+            break;
+        }
     }
+}
+
+bool is_login(int userId) {
+    for (auto user:user_record) {
+        if (user.userId == userId) {
+            return true;
+        }
+    }
+    return false;
 }
 
 string apply_cmd(const string& command, int userId) {
@@ -25,30 +36,6 @@ string apply_cmd(const string& command, int userId) {
     if (args[0] == "info") {
         response = info();
     }
-//        else if(args[0] == "login"){
-//            std::cout << "已登录用户: ";
-//            if(user_record.size() == 0){
-//                std::cout << userId << std::endl;
-//                std::cout << userId << " login successfully!" << std::endl;
-//                response = "Login successfully!\n";
-//                user_record.push_back(userId);
-//                add_user_ptr(userId);
-//            }else if(check_exist(userId)){
-//                std::cout << userId << " have already logged in!" << std::endl;
-//                response = "You have already logged in!\n";
-//            }
-//            else{
-//                std::cout << std::endl;
-//                std::cout << userId << " login successfully!" << std::endl;
-//                response = "Login successfully!\n";
-//                user_record.push_back(userId);
-//                add_user_ptr(userId);
-//            }
-//            for(int i = 0; i < user_record.size(); i++){
-//                std::cout << user_record[i] << "  ";
-//            }
-//            std::cout << std::endl;
-//        }
     else if (args[0] == "write"){
         std::cout << "write" << std::endl;
         response = write_check(args[1]);
@@ -127,11 +114,9 @@ string apply_cmd(const string& command, int userId) {
 
 int main() {
     init();
-
     // 创建或连接到共享内存
     interprocess::shared_memory_object::remove("FileSystemMessage");
     interprocess::managed_shared_memory shm(interprocess::open_or_create, "FileSystemMessage", 32000);
-
     // 创建或连接到信号量
     interprocess::named_semaphore::remove("msg_signal");
     interprocess::named_semaphore sig(interprocess::open_or_create, "msg_signal", 0);
@@ -152,11 +137,23 @@ int main() {
             std::vector<std::string> args = cut_command(command);
 
             std::cout << "已登录用户: ";
-            auto it = find(user_record.begin(), user_record.end(), userId);
-            if (it == user_record.end()) {
+            string s;
+            string id = num_to_str(userId);
+            if (!is_login(userId)) {
                 std::cout << userId << " login successfully!" << std::endl;
                 response = "Login successfully!\n";
-                user_record.push_back(userId);
+                // 创建用户
+                s = "vmsg";
+                interprocess::ipcdetail::char_ptr_holder<char> vmsgid = (s + id).c_str();
+                auto vcmd = shm.find_or_construct<bool>(vmsgid)(false);
+                s = "msg";
+                interprocess::ipcdetail::char_ptr_holder<char> msgid = (s + id).c_str();
+                auto cmd = shm.find_or_construct<Message>(msgid)(default_msg);
+                s = "resp";
+                interprocess::ipcdetail::char_ptr_holder<char> respid = (s + id).c_str();
+                auto* resp = shm.find_or_construct<Message>(respid)(default_msg);
+                User user = User(userId, vcmd, cmd, resp);
+                user_record.push_back(user);
                 add_user_ptr(userId);
             } else {
                 std::cout << userId << " have already logged in!" << std::endl;
@@ -166,11 +163,13 @@ int main() {
             Message resp_msg = Message();
             strncpy(resp_msg.message, response.c_str(), sizeof(resp_msg.message));
             // 执行命令并将结果存入共享内存
-            interprocess::ipcdetail::char_ptr_holder<char> respid = ("resp" + num_to_str(userId)).c_str();
+            s = "resp";
+            interprocess::ipcdetail::char_ptr_holder<char> respid = (s + id).c_str();
             auto* resp = shm.find_or_construct<Message>(respid)(resp_msg);
             *resp = resp_msg;
             // 发送信号通知shell回信已准备好
-            interprocess::ipcdetail::char_ptr_holder<char> shellid = ("shell" + num_to_str(userId)).c_str();
+            s = "shell";
+            interprocess::ipcdetail::char_ptr_holder<char> shellid = (s + id).c_str();
             interprocess::named_semaphore shell_sig(interprocess::open_or_create, shellid, 0);
             shell_sig.post();
             continue;
@@ -178,14 +177,11 @@ int main() {
 
         // 其他命令
         for(auto user:user_record){
-            interprocess::ipcdetail::char_ptr_holder<char> vmsgid = ("vmsg" + num_to_str(user)).c_str();
-            bool* vcmd = shm.find<bool>(vmsgid).first;
-            if(!*vcmd){
+            if(!*user.vcmd){
                 continue;
             }
-            *vcmd = false;
-            interprocess::ipcdetail::char_ptr_holder<char> msgid = ("msg" + num_to_str(user)).c_str();
-            Message* cmd = shm.find<Message>(msgid).first;
+            *user.vcmd = false;
+            Message* cmd = user.cmd;
             curr_user = cmd->userId;
             cout << "User " << curr_user << " : ";
             cout << "command: " << cmd->message << endl;
@@ -196,12 +192,11 @@ int main() {
             Message resp_msg = Message();
             strncpy(resp_msg.message, response.c_str(), sizeof(resp_msg.message));
             // 执行命令并将结果存入共享内存
-            interprocess::ipcdetail::char_ptr_holder<char> respid = ("resp" + num_to_str(cmd->userId)).c_str();
-            auto* resp = shm.find_or_construct<Message>(respid)(resp_msg);
-            *resp = resp_msg;
+            *user.resp = resp_msg;
 
             // 发送信号通知shell回信已准备好
-            interprocess::ipcdetail::char_ptr_holder<char> shellid = ("shell" + num_to_str(cmd->userId)).c_str();
+            string s = "shell";
+            interprocess::ipcdetail::char_ptr_holder<char> shellid = (s + num_to_str(cmd->userId)).c_str();
             interprocess::named_semaphore shell_sig(interprocess::open_or_create, shellid, 0);
             shell_sig.post();
             break;
