@@ -21,10 +21,10 @@ Dir* last_dir;// 上一次所在目录
 Dir* curr_dir;// 根目录
 Dir* root_dir;// 根目录
 int bit_map[100 * BLOCK_SIZE] = {0};// 位图
-std::map<std::string, int> file_lock; // 文件锁
-std::map<int, std::string> file_lock_name; // 文件锁 用户名-文件名
-std::map<int, int> file_lock_seq; // 文件锁 用户名-文件块号
-std::map<int, Dir*> user_dir; // 用户目录 用户名-目录指针
+map<string, int> file_lock; // 文件锁
+map<int, string> file_lock_name; // 文件锁 用户名-文件名
+map<int, int> file_lock_seq; // 文件锁 用户名-文件块号
+map<int, Dir*> user_dir; // 用户目录 用户名-目录指针
 
 // 初始化
 void init();
@@ -32,46 +32,46 @@ void init();
 void add_user_ptr(int userId);
 void remove_user_ptr(int userId);
 // 路径切分
-std::string show_path();
-std::vector<std::string> cut_path(std::string path);
-Dir* get_ptr_by_path(std::string path);
+string show_path();
+vector<string> cut_path(string path);
+Dir* get_ptr_by_path(string path);
 // 对目录树进行操作
-void load_dir(std::ifstream& file, Dir* dentry);
-void del_dir(std::ofstream& file, Dir* dentry);
+void load_dir(ifstream& file, Dir* dentry);
+void del_dir(ofstream& file, Dir* dentry);
 // 对位图进行操作inode读写
-void set_busy(std::ofstream& file,unsigned int index);
-void set_free(std::ofstream& file,unsigned int index);
+void set_busy(ofstream& file,unsigned int index);
+void set_free(ofstream& file,unsigned int index);
 void load_bit_map();
 int find_block_for_inode();
 int find_block_for_file();
 // inode读写
-Inode* init_inode(int type, std::string name, unsigned int parent, std::string creator);
-Inode* read_inode(std::ifstream& file, int block_seq);
+Inode* init_inode(int type, string name, unsigned int parent, string creator);
+Inode* read_inode(ifstream& file, int block_seq);
 void write_inode(Inode* inode, unsigned int index);
 Inode* del_child(Inode* parent, unsigned int child);
 void add_child(Inode* parent, unsigned int child);
 // block读写
 void clean_block(unsigned int index);
-std::string write_file_block(std::ofstream& disk,std::string content, unsigned int index);
-std::string read_file_block(std::ifstream& disk, unsigned int index);
+string write_file_block(ofstream& disk,string content, unsigned int index);
+string read_file_block(ifstream& disk, unsigned int index);
 // 命令行操作
-std::string info();
-std::string cd(std::string path);
-std::string dir(std::string arg);
-std::string md(std::string name);
-std::string rd(std::string name);
-std::string newfile(std::string name);
-std::string cat(std::string name);
-std::string copy(std::string arg1, std::string arg2);
-std::string del(std::string content);
-std::string write(std::string name);
-std::string write_check(std::string name); // 互斥处理
-std::string help();
-std::string check();
+string info();
+string cd(string path);
+string dir(string arg);
+string md(string name);
+string rd(string name);
+string newfile(string name);
+string cat(string name);
+string copy(string arg1, string arg2);
+string del(string content);
+string write(string name);
+string write_check(string name); // 互斥处理
+string help();
+string check();
 
 //初始化磁盘
 void init() {
-    std::ifstream disk("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
+    ifstream disk("disk.bin", ios::binary | ios::in | ios::out);
     load_bit_map();
     last_dir = nullptr;
     Inode* root_inode = read_inode(disk, 101);
@@ -119,8 +119,8 @@ void remove_user_ptr(int userId){
 
 /*inode读写*/
 //初始化inode
-Inode* init_inode(int type, std::string name, unsigned int parent, std::string creator) {
-    std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
+Inode* init_inode(int type, string name, unsigned int parent, string creator) {
+    ofstream file("disk.bin", ios::binary | ios::in | ios::out);
     Inode* inode = new Inode();
     inode->type = type;
     inode->name = name;
@@ -143,11 +143,11 @@ Inode* init_inode(int type, std::string name, unsigned int parent, std::string c
 
 //将inode写入磁盘
 void write_inode(Inode* inode,unsigned int block_seq){
-    std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
-    file.seekp(BLOCK_SIZE*block_seq, std::ios::beg);
+    ofstream file("disk.bin", ios::binary | ios::in | ios::out);
+    file.seekp(BLOCK_SIZE*block_seq, ios::beg);
     int type = inode->type;
     file.write((char*)&type, sizeof(int));
-    std::string name = inode->name;
+    string name = inode->name;
     file.write(name.c_str(), 64);
     unsigned int size = inode->size;
     file.write((char*)&size, sizeof(unsigned int));
@@ -166,12 +166,12 @@ void write_inode(Inode* inode,unsigned int block_seq){
         mode[i] = inode->mode[i];
     }
     file.write((char*)&mode, sizeof(unsigned int) * 3);
-    std::string creator = inode->creator;
+    string creator = inode->creator;
     file.write(creator.c_str(), 64);
-    std::string last_modified = inode->last_modified;
+    string last_modified = inode->last_modified;
     file.write(last_modified.c_str(), 64);
     // 将位图对应位置置1
-    // file.seekp(BLOCK_SIZE + block_seq * sizeof(int), std::ios::beg);
+    // file.seekp(BLOCK_SIZE + block_seq * sizeof(int), ios::beg);
     // int busy = 1;
     // file.write((char*)&busy, sizeof(int));
     set_busy(file, block_seq);
@@ -179,9 +179,9 @@ void write_inode(Inode* inode,unsigned int block_seq){
 }
 
 //从磁盘读取inode
-Inode* read_inode(std::ifstream& file, int block_seq){
+Inode* read_inode(ifstream& file, int block_seq){
     Inode* inode = new Inode;
-    file.seekg(BLOCK_SIZE*block_seq, std::ios::beg);
+    file.seekg(BLOCK_SIZE*block_seq, ios::beg);
     int type;
     file.read((char*)&type, sizeof(int));
     inode->type = type;
@@ -227,7 +227,7 @@ void add_child(Inode* parent, unsigned int child){
             return;
         }
     }
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << "add_child error: children more than 10!" << std::endl;
+    BOOST_LOG_TRIVIAL(debug)<<endl << "add_child error: children more than 10!" << endl;
 }
 
 //为inode删除子目录/文件
@@ -246,24 +246,24 @@ Inode* del_child(Inode* parent, unsigned int child){
 
 /*位图操作*/
 //将位图对应位置置1，并将磁盘中的位图更新
-void set_busy(std::ofstream& disk, unsigned int index) {
+void set_busy(ofstream& disk, unsigned int index) {
     bit_map[index] = 1;
-    disk.seekp(BLOCK_SIZE + index * sizeof(int), std::ios::beg);
+    disk.seekp(BLOCK_SIZE + index * sizeof(int), ios::beg);
     int busy = 1;
     disk.write((char*)&busy, sizeof(int));
 }
 
 //将位图对应位置置0，并将磁盘中的位图更新
-void set_free(std::ofstream& disk, unsigned int index) {
+void set_free(ofstream& disk, unsigned int index) {
     bit_map[index] = 0;
-    disk.seekp(BLOCK_SIZE + index * sizeof(int), std::ios::beg);
+    disk.seekp(BLOCK_SIZE + index * sizeof(int), ios::beg);
     int free = 0;
     disk.write((char*)&free, sizeof(int));
 }
 //从磁盘读取位图
 void load_bit_map() {
-    std::fstream disk = std::fstream("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
-    disk.seekg(BLOCK_SIZE, std::ios::beg);
+    fstream disk = fstream("disk.bin", ios::binary | ios::in | ios::out);
+    disk.seekg(BLOCK_SIZE, ios::beg);
     disk.read((char*)bit_map, sizeof(bit_map));
     disk.close();
 }
@@ -290,7 +290,7 @@ int find_block_for_file(){
 
 /*目录树操作*/
 // 由存储的inode生成同时包含目录和文件的树形结构
-void load_dir(std::ifstream& file, Dir* dentry) {
+void load_dir(ifstream& file, Dir* dentry) {
     for (int i = 0; i < 10; ++i) {
         if (dentry->inode->children[i] != 0) {
             Inode* inode = read_inode(file, dentry->inode->children[i]);
@@ -307,8 +307,8 @@ void load_dir(std::ifstream& file, Dir* dentry) {
 }
 
 //递归删除目录树
-void del_dir(std::ofstream& file, Dir* dentry) {
-    // std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
+void del_dir(ofstream& file, Dir* dentry) {
+    // ofstream file("disk.bin", ios::binary | ios::in | ios::out);
     for (auto it = dentry->files.begin(); it != dentry->files.end(); ++it) {
         if (it->second->inode->type == 1) {
             clean_block(it->second->inode->block_seq);
@@ -341,33 +341,33 @@ void del_dir(std::ofstream& file, Dir* dentry) {
 
 /*路径操作*/
 //输出当前路径
-std::string show_path() {
+string show_path() {
     Dir* curr_dir = user_dir[curr_user];
-    std::string path_return = "/";
+    string path_return = "/";
     Dir* temp = curr_dir;
-    std::vector<std::string> path;
+    vector<string> path;
     while (temp != nullptr) {
         path.push_back(temp->name);
         temp = temp->parent;
     }
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << "/";
+    BOOST_LOG_TRIVIAL(debug)<<endl << "/";
     int i = (int)path.size() - 2;
     for (; i >= 1; --i) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << path[i] << "/";
+        BOOST_LOG_TRIVIAL(debug)<<endl << path[i] << "/";
         path_return += path[i];
         path_return += "/";
     }
     if (i >= 0) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << path[i];
+        BOOST_LOG_TRIVIAL(debug)<<endl << path[i];
         path_return += path[i];
     }
     return path_return;
 }
 
 //切分路径
-std::vector<std::string> cut_path(std::string path) {
-    std::vector<std::string> res;
-    std::string curr_path;
+vector<string> cut_path(string path) {
+    vector<string> res;
+    string curr_path;
     for (int i = 0; i < (int)path.size(); ++i) {
         if (path[i] != '/' && path[i] != '>') {
             curr_path.push_back(path[i]);
@@ -387,7 +387,7 @@ std::vector<std::string> cut_path(std::string path) {
 }
 
 //根据输入的path，返回指向对应的目录的指针
-Dir* get_ptr_by_path(std::string path) {
+Dir* get_ptr_by_path(string path) {
     Dir* curr_dir = user_dir[curr_user];
     if(path.empty()) return nullptr;
     if(path == "~") {
@@ -397,7 +397,7 @@ Dir* get_ptr_by_path(std::string path) {
     if (path[0] == '/') {
         //绝对路径
         Dir* absolute_path = root_dir;
-        std::vector<std::string> splitpath = cut_path(path);
+        vector<string> splitpath = cut_path(path);
         for (int i = 1; i < (int)splitpath.size(); i++) {
             if (absolute_path->files.find(splitpath[i]) == absolute_path->files.end()) {
                 return nullptr;
@@ -408,7 +408,7 @@ Dir* get_ptr_by_path(std::string path) {
     } else {
         //相对路径
         Dir* relative_path = curr_dir;
-        std::vector<std::string> splitpath = cut_path(path);
+        vector<string> splitpath = cut_path(path);
         for (int i = 0; i < (int)splitpath.size(); ++i) {
             if (splitpath[i] == ".") continue;
             else if (splitpath[i] == "..") {
@@ -433,8 +433,8 @@ Dir* get_ptr_by_path(std::string path) {
 /*块操作*/
 //根据块号清空块
 void clean_block(unsigned int index) {
-    std::fstream disk = std::fstream("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
-    disk.seekp(BLOCK_SIZE * index, std::ios::beg);
+    fstream disk = fstream("disk.bin", ios::binary | ios::in | ios::out);
+    disk.seekp(BLOCK_SIZE * index, ios::beg);
     char buf[BLOCK_SIZE] = {0};
     memset(buf, 0, BLOCK_SIZE);
     disk.write(buf, BLOCK_SIZE);
@@ -442,12 +442,12 @@ void clean_block(unsigned int index) {
 }
 
 //将content写入磁盘中的index块
-std::string write_file_block(std::ofstream& disk,std::string content, unsigned int index) {
+string write_file_block(ofstream& disk,string content, unsigned int index) {
     if(content.size() > BLOCK_SIZE){
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "write_file_block error: content size more than max size of file!" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "write_file_block error: content size more than max size of file!" << endl;
         return "write_file_block error: content size more than max size of file!\n";
     }
-    disk.seekp(BLOCK_SIZE * index, std::ios::beg);
+    disk.seekp(BLOCK_SIZE * index, ios::beg);
     disk.write(content.c_str(), content.size());
     //删去file_lock中对应的锁
     file_lock.erase(file_lock_name[curr_user]);
@@ -457,42 +457,42 @@ std::string write_file_block(std::ofstream& disk,std::string content, unsigned i
 }
 
 //从磁盘中的index块读取文件存储内容
-std::string read_file_block(std::ifstream& disk, unsigned int index){
-    disk.seekg(BLOCK_SIZE * index, std::ios::beg);
+string read_file_block(ifstream& disk, unsigned int index){
+    disk.seekg(BLOCK_SIZE * index, ios::beg);
     char buf[BLOCK_SIZE] = {0};
     disk.read(buf, BLOCK_SIZE);
-    std::string content(buf, disk.gcount());
+    string content(buf, disk.gcount());
     return content;
 }
 
 /*功能函数*/
-std::string info() {
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << "info" << std::endl;
-    std::stringstream output;
-    output << std::right << "Filesystem";
-    output << std::setw(12) << "1k-blocks";
-    output << std::setw(7) << "Used";
-    output << std::setw(12) << "Available";
-    output << std::setw(7) << "Use%";
-    output << std::setw(12) << "Mounted on" << std::endl;
-    output << std::setw(10) << "simdisk";
-    output << std::setw(12) << "102400";
-    output << std::setw(7) << "0";
-    output << std::setw(12) << "102400";
-    output << std::setw(7) << "0%";
-    output << std::setw(12) << "/home" << std::endl;
-    std::string response = output.str(); // 使用 str() 方法获取字符串
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << response << std::flush;
+string info() {
+    BOOST_LOG_TRIVIAL(debug)<<endl << "info" << endl;
+    stringstream output;
+    output << right << "Filesystem";
+    output << setw(12) << "1k-blocks";
+    output << setw(7) << "Used";
+    output << setw(12) << "Available";
+    output << setw(7) << "Use%";
+    output << setw(12) << "Mounted on" << endl;
+    output << setw(10) << "simdisk";
+    output << setw(12) << "102400";
+    output << setw(7) << "0";
+    output << setw(12) << "102400";
+    output << setw(7) << "0%";
+    output << setw(12) << "/home" << endl;
+    string response = output.str(); // 使用 str() 方法获取字符串
+    BOOST_LOG_TRIVIAL(debug)<<endl << response << flush;
     return response;
 }
 
-std::string cd(std::string path = "") {
-    std::stringstream output;
-    std::string response;
+string cd(string path = "") {
+    stringstream output;
+    string response;
     if (path.empty()) path = "/";
     if (path == "-") {
         if (last_dir == nullptr) {
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "cd: OLDPWD not set" << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "cd: OLDPWD not set" << endl;
             response = "cd: OLDPWD not set\n";
             return response;
         }
@@ -500,7 +500,7 @@ std::string cd(std::string path = "") {
         user_dir[curr_user] = last_dir;
         last_dir = temp_dir;
         response += show_path();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << endl;
         return response;
     }
     if(path == "~") {
@@ -512,102 +512,102 @@ std::string cd(std::string path = "") {
         last_dir = user_dir[curr_user];
         user_dir[curr_user] = cd_directory;
         response += show_path();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << endl;
         return response;
     } else {
-        output << "cd: " << "No such file or directory called '"<< path << "'" << std::endl;
+        output << "cd: " << "No such file or directory called '"<< path << "'" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
         return response;
     }
 }
 
-std::string dir(std::string arg) {
+string dir(string arg) {
     Dir* curr_dir = user_dir[curr_user];
-    std::stringstream output;
-    output<<std::left;
-    std::string response;
+    stringstream output;
+    output<<left;
+    string response;
     if (arg.empty()) {
         if(curr_dir->files.begin() == curr_dir->files.end()) {
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "Nothing in this dir." << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "Nothing in this dir." << endl;
             response = "Nothing in this dir.\n";
             return response;
         }
         if(curr_dir->name == "~") {
-            output << std::setw(8) << "." << std::setw(6)<< curr_dir->inode->creator;
-            output << int_to_hex(curr_dir->inode->block_seq * BLOCK_SIZE) << "  " << curr_dir->inode->last_modified << std::endl;
+            output << setw(8) << "." << setw(6)<< curr_dir->inode->creator;
+            output << int_to_hex(curr_dir->inode->block_seq * BLOCK_SIZE) << "  " << curr_dir->inode->last_modified << endl;
         }
         else {
-            output << std::setw(8) << "." << std::setw(6)<< curr_dir->inode->creator;
-            output << int_to_hex(curr_dir->inode->block_seq * BLOCK_SIZE) << "  " << curr_dir->inode->last_modified << std::endl;
-            output << std::setw(8) << ".." << std::setw(6)<< curr_dir->inode->creator; 
-            output << int_to_hex(curr_dir->parent->inode->block_seq * BLOCK_SIZE) << "  " << curr_dir->parent->inode->last_modified << std::endl;
+            output << setw(8) << "." << setw(6)<< curr_dir->inode->creator;
+            output << int_to_hex(curr_dir->inode->block_seq * BLOCK_SIZE) << "  " << curr_dir->inode->last_modified << endl;
+            output << setw(8) << ".." << setw(6)<< curr_dir->inode->creator; 
+            output << int_to_hex(curr_dir->parent->inode->block_seq * BLOCK_SIZE) << "  " << curr_dir->parent->inode->last_modified << endl;
         }
         for (auto it = curr_dir->files.begin(); it != curr_dir->files.end(); ++it) {
-            output << std::setw(8)<< it->first << std::setw(6)<< it->second->inode->creator; 
-            output << int_to_hex(it->second->inode->block_seq * BLOCK_SIZE) << "  " << it->second->inode->last_modified << std::endl;
+            output << setw(8)<< it->first << setw(6)<< it->second->inode->creator; 
+            output << int_to_hex(it->second->inode->block_seq * BLOCK_SIZE) << "  " << it->second->inode->last_modified << endl;
         }
         // if (!curr_dir->files.empty()) { 
-        //     output << std::endl;
+        //     output << endl;
         // }
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
         return response;
     }
     // 完成指定路径下的文件列表显示
     Dir* dir_directory = get_ptr_by_path(arg);
     if (dir_directory == nullptr) {
-        output << "dir: cannot access '" << arg << "': No such file or directory" << std::endl;
+        output << "dir: cannot access '" << arg << "': No such file or directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
         return response;
     }
     if (dir_directory->inode->type == 1) {
-        output << "dir: cannot access '" << arg << "': Not a directory" << std::endl;
+        output << "dir: cannot access '" << arg << "': Not a directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
         return response;
     }
     if(dir_directory->files.begin() == dir_directory->files.end()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "Nothing in this dir." << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "Nothing in this dir." << endl;
         response = "Nothing in this dir.\n";
         return response;
     }
     if(dir_directory->name == "~") {
-        output << std::setw(8) << "." << std::setw(6)<< dir_directory->inode->creator; 
-        output << int_to_hex(dir_directory->inode->block_seq * BLOCK_SIZE) << "  " << dir_directory->inode->last_modified << std::endl;
+        output << setw(8) << "." << setw(6)<< dir_directory->inode->creator; 
+        output << int_to_hex(dir_directory->inode->block_seq * BLOCK_SIZE) << "  " << dir_directory->inode->last_modified << endl;
     }
     else {
-        output << std::setw(8) << "." << std::setw(6)<< dir_directory->inode->creator; 
-        output << int_to_hex(dir_directory->inode->block_seq * BLOCK_SIZE) << "  " << dir_directory->inode->last_modified << std::endl;
-        output << std::setw(8) << ".." << std::setw(6)<< dir_directory->inode->creator; 
-        output << int_to_hex(dir_directory->parent->inode->block_seq * BLOCK_SIZE) << "  " << dir_directory->parent->inode->last_modified << std::endl;
+        output << setw(8) << "." << setw(6)<< dir_directory->inode->creator; 
+        output << int_to_hex(dir_directory->inode->block_seq * BLOCK_SIZE) << "  " << dir_directory->inode->last_modified << endl;
+        output << setw(8) << ".." << setw(6)<< dir_directory->inode->creator; 
+        output << int_to_hex(dir_directory->parent->inode->block_seq * BLOCK_SIZE) << "  " << dir_directory->parent->inode->last_modified << endl;
     }
     for (auto it = dir_directory->files.begin(); it != dir_directory->files.end(); ++it) {
-        output << std::setw(8)<< it->first << std::setw(6)<< it->second->inode->creator; 
-        output << int_to_hex(it->second->inode->block_seq * BLOCK_SIZE) << "  " << it->second->inode->last_modified << std::endl;
+        output << setw(8)<< it->first << setw(6)<< it->second->inode->creator; 
+        output << int_to_hex(it->second->inode->block_seq * BLOCK_SIZE) << "  " << it->second->inode->last_modified << endl;
     }
     // if (!dir_directory->files.empty()) {
-    //     output << std::endl;
+    //     output << endl;
     // }
     response = output.str();
-    BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+    BOOST_LOG_TRIVIAL(debug)<<endl <<response;
     return response;
 }
 
-std::string md(std::string name = "") {
+string md(string name = "") {
     Dir* curr_dir = user_dir[curr_user];
-    std::stringstream output;
-    std::string response;
+    stringstream output;
+    string response;
     if (name.empty()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "md: missing operand" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "md: missing operand" << endl;
         response = "md: missing operand\n";
         return response;
     }
     //切分name，得到父目录和新建目录名
-    std::vector<std::string> splitpath = cut_path(name);
-    std::string parent_path;
-    std::string new_dir_name;
+    vector<string> splitpath = cut_path(name);
+    string parent_path;
+    string new_dir_name;
     Dir* parent_directory = nullptr;
     //如果name是绝对路径
     if(name[0] == '/'){
@@ -638,23 +638,23 @@ std::string md(std::string name = "") {
     //检查parent_path是否存在
     // Dir* parent_directory = get_ptr_by_path(parent_path);
     if (parent_directory == nullptr) {
-        output << "md: cannot create directory '" << parent_path << "': No such directory" << std::endl;
+        output << "md: cannot create directory '" << parent_path << "': No such directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
         return response;
     }
     //检查parent_path是否为目录
     if(parent_directory->inode->type != 0) {
-        output << "md: cannot create directory '" << parent_path << "': Not a directory" << std::endl;
+        output << "md: cannot create directory '" << parent_path << "': Not a directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
         return response;
     }
     //检查new_dir_name是否已存在
     if (parent_directory->files.find(new_dir_name) != parent_directory->files.end()) {
-        output << "md: cannot create directory '" << name << "': Dir exists" << std::endl;
+        output << "md: cannot create directory '" << name << "': Dir exists" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
         return response;
     }
     Inode* inode = init_inode(0, new_dir_name, parent_directory->inode->block_seq, num_to_str(curr_user));
@@ -668,26 +668,26 @@ std::string md(std::string name = "") {
     dentry->name = new_dir_name;
     dentry->parent = parent_directory;
     parent_directory->files[new_dir_name] = dentry;
-    output << "md: create directory '" << name << "'" << std::endl;
+    output << "md: create directory '" << name << "'" << endl;
     response = output.str();
-    BOOST_LOG_TRIVIAL(debug)<<std::endl <<response;
+    BOOST_LOG_TRIVIAL(debug)<<endl <<response;
     return response;
 }
 
-std::string rd(std::string name) {
+string rd(string name) {
     Dir* curr_dir = user_dir[curr_user];
-    std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
-    std::stringstream output;
-    std::string response;
+    ofstream file("disk.bin", ios::binary | ios::in | ios::out);
+    stringstream output;
+    string response;
     if (name.empty()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "rd: missing operand" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "rd: missing operand" << endl;
         response = "rd: missing operand\n";
         return response;
     }
     //切分name，得到父目录和要删除的目录名字
-    std::vector<std::string> splitpath = cut_path(name);
-    std::string parent_path;
-    std::string del_dir_name;
+    vector<string> splitpath = cut_path(name);
+    string parent_path;
+    string del_dir_name;
     Dir *parent_directory = nullptr;
     // 如果是绝对路径
     if(name[0] == '/'){
@@ -718,54 +718,54 @@ std::string rd(std::string name) {
     //检查parent_path是否存在
     // Dir* parent_directory = get_ptr_by_path(parent_path);
     if (parent_directory == nullptr) {
-        output << "rd: cannot remove directory '" << parent_path << "': No such file or directory '" << std::endl;
+        output << "rd: cannot remove directory '" << parent_path << "': No such file or directory '" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
     //检查parent_path是否为目录
     if(parent_directory->inode->type != 0) {
-        output << "rd: cannot remove directory '" << parent_path << "': Not a directory" << std::endl;
+        output << "rd: cannot remove directory '" << parent_path << "': Not a directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
     //检查del_dir_name是否存在
     if(parent_directory->files.find(del_dir_name) == parent_directory->files.end()) {
-        output << "rd: cannot remove directory '" << name << "': No such directory" << std::endl;
+        output << "rd: cannot remove directory '" << name << "': No such directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
     //检查del_dir_name是否为目录
     if(parent_directory->files[del_dir_name]->inode->type != 0) {
-        output << "rd: cannot remove directory '" << name << "': Not a directory" << std::endl;
+        output << "rd: cannot remove directory '" << name << "': Not a directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
     del_dir(file, parent_directory->files[del_dir_name]);
     parent_directory->files.erase(del_dir_name);
     file.close();
-    output << "rd: remove directory '" << name << "'" << std::endl;
+    output << "rd: remove directory '" << name << "'" << endl;
     response = output.str();
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+    BOOST_LOG_TRIVIAL(debug)<<endl << response;
     return response;
 }
 
-std::string newfile(std::string name = "") {
+string newfile(string name = "") {
     Dir* curr_dir = user_dir[curr_user];
-    std::stringstream output;
-    std::string response;
+    stringstream output;
+    string response;
     if (name.empty()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "newfile: missing operand" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "newfile: missing operand" << endl;
         response = "newfile: missing operand\n";
         return response;
     } 
     //切分name，得到父目录和新建目录名
-    std::vector<std::string> splitpath = cut_path(name);
-    std::string parent_path;
-    std::string new_dir_name;
+    vector<string> splitpath = cut_path(name);
+    string parent_path;
+    string new_dir_name;
     Dir *parent_directory = nullptr;
     //如果name是绝对路径
     if(name[0] == '/'){
@@ -796,23 +796,23 @@ std::string newfile(std::string name = "") {
     //检查parent_path是否存在
     // Dir* parent_directory = get_ptr_by_path(parent_path);
     if (parent_directory == nullptr) {
-        output << "newfile: cannot create directory '" << parent_path << "': No such directory '" << std::endl;
+        output << "newfile: cannot create directory '" << parent_path << "': No such directory '" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
     //检查parent_path是否为目录
     if(parent_directory->inode->type != 0) {
-        output << "newfile: cannot create directory '" << parent_path << "': Not a directory" << std::endl;
+        output << "newfile: cannot create directory '" << parent_path << "': Not a directory" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
     //检查new_dir_name是否已存在
     if (parent_directory->files.find(new_dir_name) != parent_directory->files.end()) {
-        output << "newfile: cannot create directory '" << name << "': File exists" << std::endl;
+        output << "newfile: cannot create directory '" << name << "': File exists" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
     Inode* inode = init_inode(1, new_dir_name, parent_directory->inode->block_seq, num_to_str(curr_user));
@@ -825,28 +825,28 @@ std::string newfile(std::string name = "") {
     dentry->name = new_dir_name;
     dentry->parent = parent_directory;
     parent_directory->files[new_dir_name] = dentry;
-    output << "newfile: create file '" << name << "'" << std::endl;
+    output << "newfile: create file '" << name << "'" << endl;
     response = output.str();
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << response;
+    BOOST_LOG_TRIVIAL(debug)<<endl << response;
     return response;
 }
 
-std::string cat(std::string name) {
+string cat(string name) {
     Dir* curr_dir = user_dir[curr_user];
-    std::string response;
+    string response;
     if (name.empty()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "cat: missing operand" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "cat: missing operand" << endl;
         return "cat: missing operand\n";
     }
     // //检查该文件是否正在被写入
     // if(file_lock.find(name) != file_lock.end()){
-    //     BOOST_LOG_TRIVIAL(debug)<<std::endl << "write: cannot write file '" << name << "': File is being written" << std::endl;
+    //     BOOST_LOG_TRIVIAL(debug)<<endl << "write: cannot write file '" << name << "': File is being written" << endl;
     //     return "write: cannot write file '" + name + "': File is being written\n";
     // }
     //切分name，得到父目录和要删除的文件名字
-    std::vector<std::string> splitpath = cut_path(name);
-    std::string parent_path;
-    std::string cat_file_name;
+    vector<string> splitpath = cut_path(name);
+    string parent_path;
+    string cat_file_name;
     Dir *parent_directory = nullptr;
     //如果name是绝对路径
     if(name[0] == '/'){
@@ -877,35 +877,35 @@ std::string cat(std::string name) {
     //检查parent_path是否存在
     // Dir* parent_directory = get_ptr_by_path(parent_path);
     if (parent_directory == nullptr) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "cat: cannot write file '" << parent_path << "': No such directory" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "cat: cannot write file '" << parent_path << "': No such directory" << endl;
         return "cat: cannot write file '" + parent_path + "': No such directory\n";
     }
     //检查parent_path是否为目录
     if(parent_directory->inode->type != 0) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "cat: cannot write file '" << parent_path << "': Not a directory" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "cat: cannot write file '" << parent_path << "': Not a directory" << endl;
         return "cat: cannot remove file '" + parent_path + "': Not a directory\n";
     }
     //检查cat_file_name是否存在
     if(parent_directory->files.find(cat_file_name) == parent_directory->files.end()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "cat: cannot remove file '" << name << "': No such file" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "cat: cannot remove file '" << name << "': No such file" << endl;
         return "cat: cannot remove file '" + name + "': No such file\n";
     }
     //检查cat_file_name是否为文件
     if(parent_directory->files[cat_file_name]->inode->type != 1) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "cat: cannot write file '" << name << "': Not a file" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "cat: cannot write file '" << name << "': Not a file" << endl;
         return "cat: cannot write file '" + name + "': Not a file\n";
     }
-    std::ifstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
-    std::string content = read_file_block(file, parent_directory->files[cat_file_name]->inode->children[0]);
+    ifstream file("disk.bin", ios::binary | ios::in | ios::out);
+    string content = read_file_block(file, parent_directory->files[cat_file_name]->inode->children[0]);
     content += '\n';
-    BOOST_LOG_TRIVIAL(debug)<<std::endl<< content <<std::flush;
+    BOOST_LOG_TRIVIAL(debug)<<endl<< content <<flush;
     return content;
 }
 
-std::string copy(std::string arg1 = "", std::string arg2 = "") {
+string copy(string arg1 = "", string arg2 = "") {
     Dir* curr_dir = user_dir[curr_user];
     if (arg1.empty() || arg2.empty()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: missing operand" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "copy: missing operand" << endl;
         return "copy: missing operand\n";
     }
     //拷贝文件，除支持模拟Linux文件系统内部的文件拷贝外，还支持host文件系统与模拟Linux文件系统间的文件拷贝，
@@ -917,11 +917,11 @@ std::string copy(std::string arg1 = "", std::string arg2 = "") {
     if(arg1[0] = '<'){
         //被复制的文件来自host文件系统，路径以<host>开头
         //检查arg1在host文件系统中是否存在
-        std::string host_path;
-        std::vector<std::string> splitpath = cut_path(arg1);
+        string host_path;
+        vector<string> splitpath = cut_path(arg1);
         //如果输入的不是<host>
         if(splitpath[0] != "<host>"){
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "Wrong input for '"<< splitpath[0] << "'. Do you mean '<host>' ?" <<std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "Wrong input for '"<< splitpath[0] << "'. Do you mean '<host>' ?" <<endl;
             return "Wrong input for '" + splitpath[0] + "'. Do you mean '<host>' ?\n";
         }
         for(int i = 1; i < (int)splitpath.size(); i++){
@@ -930,28 +930,28 @@ std::string copy(std::string arg1 = "", std::string arg2 = "") {
         }
         FILE* fp = fopen(host_path.c_str(), "r");
         if(fp == NULL){
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: cannot stat '" << arg1 << "': No such file or directory in <host>" << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg1 << "': No such file or directory in <host>" << endl;
             return "copy: cannot stat '" + arg1 + "': No such file or directory in <host>\n";
         }else{
             fclose(fp);
         }
         //分割arg1，得到文件名
-        std::string filename;
+        string filename;
         filename = splitpath[splitpath.size() - 1];
         //检查arg2是否存在
         Dir* paste_directory = get_ptr_by_path(arg2);
         if (paste_directory == nullptr) {
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: cannot stat '" << arg2 << "': No such directory" << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': No such directory" << endl;
             return "copy: cannot stat '" + arg2 + "': No such directory\n";
         }
         else{
             //分割arg2，得到文件被复制到的最后一级目录名path
-            std::string path;
-            std::vector<std::string> splitpath2 = cut_path(arg2);
+            string path;
+            vector<string> splitpath2 = cut_path(arg2);
             path = splitpath2[splitpath2.size() - 1];
             //检查path是否为目录
             if(paste_directory->inode->type != 0) {
-                BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: cannot stat '" << arg2 << "': Not a directory" << std::endl;
+                BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': Not a directory" << endl;
                 return "copy: cannot stat '" + arg2 + "': Not a directory\n";
             }
             //在path目录下创建一个新文件，文件名为filename
@@ -963,35 +963,35 @@ std::string copy(std::string arg1 = "", std::string arg2 = "") {
             dentry->name = filename;
             dentry->parent = paste_directory;
             paste_directory->files[filename] = dentry;
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: successfully copy '" << arg1 << "' to '" << arg2 << "'" << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: successfully copy '" << arg1 << "' to '" << arg2 << "'" << endl;
             return "copy: successfully copy '" + arg1 + "' to '" + arg2 + "'\n";
         }
     }
     else{
         //实现simdisk内部文件的copy
         //分割arg1，得到文件名
-        std::string filename;
-        std::vector<std::string> splitpath = cut_path(arg1);
+        string filename;
+        vector<string> splitpath = cut_path(arg1);
         filename = splitpath[splitpath.size() - 1];
         //逐级检查arg1是否存在
         Dir* copy_directory = get_ptr_by_path(arg1);
         if (copy_directory == nullptr) {
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: cannot stat '" << arg1 << "': No such file or directory" << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg1 << "': No such file or directory" << endl;
             return "copy: cannot stat '" + arg1 + "': No such file or directory\n";
         }
         //检查arg2是否存在
         Dir* paste_directory = get_ptr_by_path(arg2);
         if (paste_directory == nullptr) {
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: cannot stat '" << arg2 << "': No such directory" << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': No such directory" << endl;
             return "copy: cannot stat '" + arg2 + "': No such directory\n";
         }
         //分割arg2，得到文件被复制到的最后一级目录名path
-        std::string path;
-        std::vector<std::string> splitpath2 = cut_path(arg2);
+        string path;
+        vector<string> splitpath2 = cut_path(arg2);
         path = splitpath2[splitpath2.size() - 1];
         //检查path是否为目录
         if(paste_directory->inode->type != 0) {
-            BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: cannot stat '" << arg2 << "': Not a directory" << std::endl;
+            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': Not a directory" << endl;
             return "copy: cannot stat '" + arg2 + "': Not a directory\n";
         }
         //在path目录下创建一个新文件，文件名为filename
@@ -1003,21 +1003,21 @@ std::string copy(std::string arg1 = "", std::string arg2 = "") {
         dentry->name = filename;
         dentry->parent = paste_directory;
         paste_directory->files[filename] = dentry;
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "copy: successfully copy '" << arg1 << "' to '" << arg2 << "'" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "copy: successfully copy '" << arg1 << "' to '" << arg2 << "'" << endl;
         return "copy: successfully copy '" + arg1 + "' to '" + arg2 + "'\n";
     }
 }
 
-std::string del(std::string name = "") {
+string del(string name = "") {
     Dir* curr_dir = user_dir[curr_user];
     if (name.empty()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "del: missing operand" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "del: missing operand" << endl;
         return "del: missing operand\n";
     }
     //切分name，得到父目录和要删除的文件名字
-    std::vector<std::string> splitpath = cut_path(name);
-    std::string parent_path;
-    std::string del_file_name;
+    vector<string> splitpath = cut_path(name);
+    string parent_path;
+    string del_file_name;
     Dir *parent_directory = nullptr;
     //如果name是绝对路径
     if(name[0] == '/'){
@@ -1048,52 +1048,52 @@ std::string del(std::string name = "") {
     //检查parent_path是否存在
     // Dir* parent_directory = get_ptr_by_path(parent_path);
     if (parent_directory == nullptr) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "del: cannot remove file '" << parent_path << "': No such directory" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "del: cannot remove file '" << parent_path << "': No such directory" << endl;
         return "del: cannot remove file '" + parent_path + "': No such directory\n";
     }
     //检查parent_path是否为目录
     if(parent_directory->inode->type != 0) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "del: cannot remove file '" << parent_path << "': Not a directory" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "del: cannot remove file '" << parent_path << "': Not a directory" << endl;
         return "del: cannot remove file '" + parent_path + "': Not a directory\n";
     }
     //检查del_file_name是否存在
     if(parent_directory->files.find(del_file_name) == parent_directory->files.end()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "del: cannot remove file '" << name << "': No such file" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "del: cannot remove file '" << name << "': No such file" << endl;
         return "del: cannot remove file '" + name + "': No such file\n";
     }
     //检查del_file_name是否为文件
     if(parent_directory->files[del_file_name]->inode->type != 1) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "del: cannot remove file '" << name << "': Not a file" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "del: cannot remove file '" << name << "': Not a file" << endl;
         return "del: cannot remove file '" + name + "': Not a file\n";
     }
     //删除文件
-    std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
+    ofstream file("disk.bin", ios::binary | ios::in | ios::out);
     clean_block(parent_directory->files[del_file_name]->inode->block_seq);
     write_inode(del_child(parent_directory->inode, parent_directory->files[del_file_name]->inode->block_seq), parent_directory->inode->block_seq);
     set_free(file, parent_directory->files[del_file_name]->inode->block_seq);
     file.close();
     delete parent_directory->files[del_file_name];
     parent_directory->files.erase(del_file_name);
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << "del: remove file '" << name << "'" << std::endl;
+    BOOST_LOG_TRIVIAL(debug)<<endl << "del: remove file '" << name << "'" << endl;
     return "del: remove file '" + name + "'\n";
 }
 
-std::string write_check(std::string name){
+string write_check(string name){
     Dir* curr_dir = user_dir[curr_user];
-    std::string response;
+    string response;
     if (name.empty()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "write: missing operand" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "write: missing operand" << endl;
         return "write: missing operand\n";
     }
     //检查该文件是否正在被写入
     if(file_lock.find(name) != file_lock.end()){
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "write: cannot write file '" << name << "': File is being written" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "write: cannot write file '" << name << "': File is being written" << endl;
         return "write: cannot write file '" + name + "': File is being written\n";
     }
     //切分name，得到父目录和要删除的文件名字
-    std::vector<std::string> splitpath = cut_path(name);
-    std::string parent_path;
-    std::string del_file_name;
+    vector<string> splitpath = cut_path(name);
+    string parent_path;
+    string del_file_name;
     Dir *parent_directory = nullptr;
     // 如果name是绝对路径
     if(name[0] == '/'){
@@ -1124,26 +1124,26 @@ std::string write_check(std::string name){
     // 检查parent_path是否存在
     // Dir* parent_directory = get_ptr_by_path(parent_path);
     if (parent_directory == nullptr) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "write: cannot write file '" << parent_path << "': No such directory" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "write: cannot write file '" << parent_path << "': No such directory" << endl;
         return "write: cannot write file '" + parent_path + "': No such directory\n";
     }
     // 检查parent_path是否为目录
     if(parent_directory->inode->type != 0) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "write: cannot write file '" << parent_path << "': Not a directory" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "write: cannot write file '" << parent_path << "': Not a directory" << endl;
         return "write: cannot remove file '" + parent_path + "': Not a directory\n";
     }
     // 检查del_file_name是否存在
     if(parent_directory->files.find(del_file_name) == parent_directory->files.end()) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "write: cannot remove file '" << name << "': No such file" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "write: cannot remove file '" << name << "': No such file" << endl;
         return "write: cannot remove file '" + name + "': No such file\n";
     }
     // 检查del_file_name是否为文件
     if(parent_directory->files[del_file_name]->inode->type != 1) {
-        BOOST_LOG_TRIVIAL(debug)<<std::endl << "write: cannot write file '" << name << "': Not a file" << std::endl;
+        BOOST_LOG_TRIVIAL(debug)<<endl << "write: cannot write file '" << name << "': Not a file" << endl;
         return "write: cannot write file '" + name + "': Not a file\n";
     }
     // 将文件名和块号写入文件锁file_lock中
-    std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
+    ofstream file("disk.bin", ios::binary | ios::in | ios::out);
     file_lock[name] = parent_directory->files[del_file_name]->inode->block_seq;
     file_lock_name[curr_user] = name;
     parent_directory->files[del_file_name]->inode->num_of_children++;
@@ -1151,61 +1151,61 @@ std::string write_check(std::string name){
     write_inode(parent_directory->files[del_file_name]->inode, parent_directory->files[del_file_name]->inode->block_seq);
     set_busy(file, parent_directory->files[del_file_name]->inode->children[0]);
     file_lock_seq[curr_user] = parent_directory->files[del_file_name]->inode->children[0];
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << "Input the content end with $" << std::endl;
+    BOOST_LOG_TRIVIAL(debug)<<endl << "Input the content end with $" << endl;
     response = "Input the content end with $\n";
     return response;
 }
 
-std::string write(std::string content) {
-    std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
+string write(string content) {
+    ofstream file("disk.bin", ios::binary | ios::in | ios::out);
     // 写入传回来的text，text中可能带有空格、换行符等
-    std::string response;
+    string response;
     // 不需要检查text是否为空，因为write_check函数已经检查过了
     // 也不需要检查当前文件是否正在被写入，因为在shell中检查过了
     // 开始向文件中写入text
     response = write_file_block(file, content,file_lock_seq[curr_user]);
     file.close();
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << response << std::flush;
+    BOOST_LOG_TRIVIAL(debug)<<endl << response << flush;
     return response;
 }
 
-std::string help(){
-    std::stringstream output;
-    output << "-------------------Help----------------------" << std::endl;
-    output << std::left << std::setw(10) << "Command";
-    output << std::setw(10) << "Description" << std::endl;
-    output << std::setw(10) << "info";
-    output << std::setw(10) << "Show information of the filesystem" << std::endl;
-    output << std::setw(10) << "cd";
-    output << std::setw(10) << "Change the current directory" << std::endl;
-    output << std::setw(10) << "dir";
-    output << std::setw(10) << "List the files in the directory" << std::endl;
-    output << std::setw(10) << "md";
-    output << std::setw(10) << "Make a new directory" << std::endl;
-    output << std::setw(10) << "rd";
-    output << std::setw(10) << "Remove a directory" << std::endl;
-    output << std::setw(10) << "newfile";
-    output << std::setw(10) << "Make a new file" << std::endl;
-    output << std::setw(10) << "del";
-    output << std::setw(10) << "Delete a file" << std::endl;
-    output << std::setw(10) << "cat";
-    output << std::setw(10) << "Show the content of a file" << std::endl;
-    output << std::setw(10) << "copy";
-    output << std::setw(10) << "Copy a file" << std::endl;
-    output << std::setw(10) << "write";
-    output << std::setw(10) << "Write a file" << std::endl;
-    output << std::setw(10) << "check";
-    output << std::setw(10) << "Check the filesystem" << std::endl;
-    output << std::setw(10) << "exit";
-    output << std::setw(10) << "Exit the filesystem" << std::endl;
-    output << "---------------------------------------------" << std::endl;
-    std::string response = output.str();
-    BOOST_LOG_TRIVIAL(debug)<<std::endl<<std::endl << response;
+string help(){
+    stringstream output;
+    output << "-------------------Help----------------------" << endl;
+    output << left << setw(10) << "Command";
+    output << setw(10) << "Description" << endl;
+    output << setw(10) << "info";
+    output << setw(10) << "Show information of the filesystem" << endl;
+    output << setw(10) << "cd";
+    output << setw(10) << "Change the current directory" << endl;
+    output << setw(10) << "dir";
+    output << setw(10) << "List the files in the directory" << endl;
+    output << setw(10) << "md";
+    output << setw(10) << "Make a new directory" << endl;
+    output << setw(10) << "rd";
+    output << setw(10) << "Remove a directory" << endl;
+    output << setw(10) << "newfile";
+    output << setw(10) << "Make a new file" << endl;
+    output << setw(10) << "del";
+    output << setw(10) << "Delete a file" << endl;
+    output << setw(10) << "cat";
+    output << setw(10) << "Show the content of a file" << endl;
+    output << setw(10) << "copy";
+    output << setw(10) << "Copy a file" << endl;
+    output << setw(10) << "write";
+    output << setw(10) << "Write a file" << endl;
+    output << setw(10) << "check";
+    output << setw(10) << "Check the filesystem" << endl;
+    output << setw(10) << "exit";
+    output << setw(10) << "Exit the filesystem" << endl;
+    output << "---------------------------------------------" << endl;
+    string response = output.str();
+    BOOST_LOG_TRIVIAL(debug)<<endl<<endl << response;
     return response;
 }
 
-std::string check(){
+string check(){
     // 检查文件系统是否正常
-    BOOST_LOG_TRIVIAL(debug)<<std::endl << "Everything is OK" << std::endl;
+    BOOST_LOG_TRIVIAL(debug)<<endl << "Everything is OK" << endl;
     return "Everything is OK\n";
 }

@@ -13,7 +13,7 @@ int main() {
     // 显示欢迎界面
     cout << "-------------file system-------------" << endl;
     int userId;
-    std::string curr_path;
+    string curr_path;
     bool is_writing = false; // 是否正在写文件
     Message message = Message();
     char command[SIZE];
@@ -22,8 +22,8 @@ int main() {
     string prefix;
 
     // login
-    std::cout << "Login as (Positive User ID): ";
-    std::cin >> userId;
+    cout << "Login as (Positive User ID): ";
+    cin >> userId;
     user_id = num_to_str(userId);
     // 向共享内存写入命令
     strncpy(command, "login", sizeof(command));
@@ -52,10 +52,10 @@ int main() {
     string response = resp->message;
     prefix = "user" + num_to_str(userId) + "@cyx:~";
     // 登录
-    std::cout << response << std::endl;
+    cout << response << endl;
     show_help();
-    std::cout << std::endl;
-    std::cout << prefix << "$ ";
+    cout << endl;
+    cout << prefix << "$ ";
 
     prefix = "vmsg";
     ipcdetail::char_ptr_holder<char> vmsgid = (prefix + user_id).c_str();
@@ -74,7 +74,7 @@ int main() {
             while(offset < SIZE){
                 char input_line[SIZE];
                 // memset(input_line, '\0', 512);
-                std::cin.getline(input_line, sizeof(input_line));
+                cin.getline(input_line, sizeof(input_line));
                 if(input_line[0] == '$'){
                     break;
                 }
@@ -92,9 +92,9 @@ int main() {
             *msg = message;
         }
         else{
-            std::cin.getline(command, sizeof(command));
+            cin.getline(command, sizeof(command));
             while(command[0] == '\0'){
-                std::cin.getline(command, sizeof(command));
+                cin.getline(command, sizeof(command));
             }
             // 向共享内存写入命令
             strncpy(message.message, command, sizeof(message.message));
@@ -111,46 +111,46 @@ int main() {
         prefix = "user" + num_to_str(userId) + "@cyx:~";
         if(is_writing){
             // 刚写完文件，标记写入过程结束
-            std::cout << response;
-            std::cout << prefix << curr_path << "$ " << std::flush;
+            cout << response;
+            cout << prefix << curr_path << "$ " << flush;
             is_writing = false;
         }
         else if(strcmp(command, "exit") == 0){
             // 退出文件系统
-            std::cout << response;
+            cout << response;
             named_semaphore::remove(shellid);
             break;
         }
         else if(cut_command(command)[0] == "write"){
             // 写文件
-            std::cout << response << std::flush;
+            cout << response << flush;
             if(response == "Input the content end with $\n"){
                 is_writing = true;
             }
             else{
                 is_writing = false;
-                std::cout << prefix << curr_path << "$ " << std::flush;
+                cout << prefix << curr_path << "$ " << flush;
             }
         }
         else if(cut_command(command)[0] == "cd"){
             // 切换目录，用于改变curr_path
             string temp_path = response;
             if(temp_path[0] == '/'){
-                std::cout << prefix << response << "$ "<< std::flush;
+                cout << prefix << response << "$ "<< flush;
                 curr_path = temp_path;
             }
             else if (temp_path == ""){
-                std::cout << prefix << "$ "<< std::flush;
+                cout << prefix << "$ "<< flush;
                 curr_path.clear();
             }
             else{
-                std::cout  << response;
-                std::cout << prefix << curr_path << "$ " << std::flush;
+                cout  << response;
+                cout << prefix << curr_path << "$ " << flush;
             }
         }
         else{
-            std::cout << response;
-            std::cout << prefix << curr_path << "$ " << std::flush;
+            cout << response;
+            cout << prefix << curr_path << "$ " << flush;
         }
     }
     return 0;
