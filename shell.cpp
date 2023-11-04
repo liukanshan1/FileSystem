@@ -96,7 +96,10 @@ int main() {
             *msg = message;
         }
         else{
-            cin>>command;
+            std::cin.getline(command, sizeof(command));
+            while(command[0] == '\0'){
+                std::cin.getline(command, sizeof(command));
+            }
             // 向共享内存写入命令
             strncpy(message.message, command, sizeof(message.message));
             *vmsg = true;

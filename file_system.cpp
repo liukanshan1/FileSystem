@@ -101,6 +101,9 @@ string apply_cmd(const string& command, int userId) {
         remove_user(userId);
         remove_user_ptr(userId);
     }
+    else if (args[0] == "check") {
+        response = check();
+    }
 //    else if (args[0].empty()) continue;
     else {
         response = args[0] + ": command not found\n";
