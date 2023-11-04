@@ -1,5 +1,5 @@
 #include "iostream"
-#include <string.h>
+#include <cstring>
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <iomanip>
@@ -17,9 +17,7 @@ struct Message {
     char message[1024];
 };
 
-std::string num_to_str(int num){
-    return std::to_string(num);
-}
+Message default_msg = Message{-1, ""};
 
 class User {
 public:
@@ -36,6 +34,10 @@ public:
         //this->shell_sig = shell_sig;
     }
 };
+
+std::string num_to_str(int num){
+    return std::to_string(num);
+}
 
 vector<std::string> cut_command(string command) {
     vector<string> res;

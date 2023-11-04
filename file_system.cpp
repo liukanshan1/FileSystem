@@ -7,7 +7,7 @@
 using namespace std;
 using namespace boost;
 
-vector<User> user_record;// 用户记录
+vector<User> user_record; // 记录登录用户
 
 void remove_user(int userId) {
     for (auto it = user_record.begin(); it != user_record.end(); it++) {
@@ -19,12 +19,9 @@ void remove_user(int userId) {
 }
 
 bool is_login(int userId) {
-    for (auto user:user_record) {
-        if (user.userId == userId) {
-            return true;
-        }
-    }
-    return false;
+    return any_of(user_record.begin(),
+                  user_record.end(),
+                  [userId](User user) { return user.userId == userId; });
 }
 
 string apply_cmd(const string& command, int userId) {
@@ -120,22 +117,17 @@ int main() {
     // 创建或连接到信号量
     interprocess::named_semaphore::remove("msg_signal");
     interprocess::named_semaphore sig(interprocess::open_or_create, "msg_signal", 0);
-
     while (true) {
-       // 等待shell发送信号
+        // 等待shell发送信号
         sig.wait();
         string response;
-
         // 从共享内存中读取命令
-        // login or exit
+        // 登录命令
         bool* vcmd = shm.find<bool>("vmsg0").first;
         if (*vcmd) {
             *vcmd = false;
             Message* cmd = shm.find<Message>("msg0").first;
             int userId = cmd->userId;
-            std::string command = cmd->message;
-            std::vector<std::string> args = cut_command(command);
-
             std::cout << "已登录用户: ";
             string s;
             string id = num_to_str(userId);
@@ -174,7 +166,6 @@ int main() {
             shell_sig.post();
             continue;
         }
-
         // 其他命令
         for(auto user:user_record){
             if(!*user.vcmd){
@@ -185,15 +176,11 @@ int main() {
             curr_user = cmd->userId;
             cout << "User " << curr_user << " : ";
             cout << "command: " << cmd->message << endl;
-
-            response = apply_cmd(cmd->message, curr_user);
-
             // 执行命令并将结果存入共享内存
+            response = apply_cmd(cmd->message, curr_user);
             Message resp_msg = Message();
             strncpy(resp_msg.message, response.c_str(), sizeof(resp_msg.message));
-            // 执行命令并将结果存入共享内存
             *user.resp = resp_msg;
-
             // 发送信号通知shell回信已准备好
             string s = "shell";
             interprocess::ipcdetail::char_ptr_holder<char> shellid = (s + num_to_str(cmd->userId)).c_str();
