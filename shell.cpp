@@ -1,8 +1,4 @@
-#include <string.h>
-#include <iostream>
 #include "utils.hpp"
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/sync/named_semaphore.hpp>
 
 using namespace std;
 using namespace boost::algorithm;
@@ -79,7 +75,7 @@ int main() {
                 char input_line[SIZE];
                 // memset(input_line, '\0', 512);
                 std::cin.getline(input_line, sizeof(input_line));
-                if(input_line[0] == 27){
+                if(input_line[0] == '$'){
                     break;
                 }
                 else{
@@ -128,7 +124,7 @@ int main() {
         else if(cut_command(command)[0] == "write"){
             // 写文件
             std::cout << response << std::flush;
-            if(response == "Input the content you want to write into the file. Press 'ESC + Enter' to finish.\n"){
+            if(response == "Input the content end with $\n"){
                 is_writing = true;
             }
             else{

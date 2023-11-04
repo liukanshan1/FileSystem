@@ -1,5 +1,4 @@
 #include <sstream>
-#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -13,35 +12,9 @@
 #include <unistd.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
-#include <map>
 #include "utils.hpp"
+
 #define BLOCK_SIZE 1024
-
-/*------------------------------------------------基本结构-------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-struct Inode {
-    int type;// 0: dir, 1: file
-    std::string name;// 文件名
-    unsigned int size;// 文件大小
-    unsigned int block_seq;// 文件所在块号
-    unsigned int num_of_children = 0;// 子目录/文件数量
-    unsigned int parent;// 父目录块号
-    unsigned int children[10];// 子目录/文件块号
-    unsigned int mode[3];// 文件权限
-    std::string creator;// 创建者
-    std::string last_modified;// 最后修改时间
-};
-
-struct Dir {
-    Inode* inode = nullptr;// 目录对应的inode
-    std::string name;// 目录名
-    Dir* parent = nullptr;// 父目录
-    std::map<std::string, Dir*> files;// 子目录/文件
-};
-
-/*----------------------------------------------基本结构定义-----------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
 
 int curr_user = 0;// 当前用户
 Dir* last_dir;// 上一次所在目录
@@ -53,49 +26,34 @@ std::map<int, std::string> file_lock_name; // 文件锁 用户名-文件名
 std::map<int, int> file_lock_seq; // 文件锁 用户名-文件块号
 std::map<int, Dir*> user_dir; // 用户目录 用户名-目录指针
 
-/*----------------------------------------------函数表------------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
 // 初始化
 void init();
-
 // 用户函数
 void add_user_ptr(int userId);
 void remove_user_ptr(int userId);
-
-// 输出转化
-std::string int_to_hex(int num);
-std::string get_current_time();
-
 // 路径切分
 std::string show_path();
 std::vector<std::string> cut_path(std::string path);
 Dir* get_ptr_by_path(std::string path);
-
 // 对目录树进行操作
 void load_dir(std::ifstream& file, Dir* dentry);
 void del_dir(std::ofstream& file, Dir* dentry);
-
 // 对位图进行操作inode读写
 void set_busy(std::ofstream& file,unsigned int index);
 void set_free(std::ofstream& file,unsigned int index);
 void load_bit_map();
 int find_block_for_inode();
 int find_block_for_file();
-void init_bit_map();
-
 // inode读写
 Inode* init_inode(int type, std::string name, unsigned int parent, std::string creator);
 Inode* read_inode(std::ifstream& file, int block_seq);
 void write_inode(Inode* inode, unsigned int index);
 Inode* del_child(Inode* parent, unsigned int child);
 void add_child(Inode* parent, unsigned int child);
-
 // block读写
 void clean_block(unsigned int index);
 std::string write_file_block(std::ofstream& disk,std::string content, unsigned int index);
 std::string read_file_block(std::ifstream& disk, unsigned int index);
-
 // 命令行操作
 std::string info();
 std::string cd(std::string path);
@@ -110,14 +68,8 @@ std::string write(std::string name);
 std::string write_check(std::string name); // 互斥处理
 std::string help();
 std::string check();
-void exit();
 
-/*----------------------------------------------初始化-----------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-/***
- * 初始化磁盘
-*/
+//初始化磁盘
 void init() {
     std::ifstream disk("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
     load_bit_map();
@@ -156,9 +108,7 @@ void init() {
     root_dir = curr_dir;
 }
 
-/*-----------------------------------------------用户登记--------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
+/*用户操作*/
 void add_user_ptr(int userId){
     user_dir[userId] = root_dir;
 }
@@ -167,44 +117,8 @@ void remove_user_ptr(int userId){
     user_dir.erase(userId);
 }
 
-/*-----------------------------------------------输出转化--------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-/***
- * 将输入的int转化为8位16进制字符串
-*/
-std::string int_to_hex(int num){
-    // 将输入的int转化为8位16进制字符串
-    std::stringstream stream;
-    stream << std::hex << num;
-    std::string result(stream.str());
-    while(result.size() < 8){
-        result = "0" + result;
-    }
-    return result;
-}
-
-/***
- * 获取当前时间
-*/
-std::string get_current_time() {
-    // 获取当前时间点
-    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    // 将时间点转换为时间结构
-    std::time_t time = std::chrono::system_clock::to_time_t(now);
-    std::tm local_time = *std::localtime(&time);
-    // 使用stringstream来格式化时间为字符串
-    std::stringstream ss;
-    ss << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S");
-    return ss.str();
-}
-
-/*----------------------------------------------inode读写--------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-/***
- * 初始化inode
-*/
+/*inode读写*/
+//初始化inode
 Inode* init_inode(int type, std::string name, unsigned int parent, std::string creator) {
     std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
     Inode* inode = new Inode();
@@ -227,9 +141,7 @@ Inode* init_inode(int type, std::string name, unsigned int parent, std::string c
     return inode;
 }
 
-/***
- * 将inode写入磁盘
-*/
+//将inode写入磁盘
 void write_inode(Inode* inode,unsigned int block_seq){
     std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
     file.seekp(BLOCK_SIZE*block_seq, std::ios::beg);
@@ -266,9 +178,7 @@ void write_inode(Inode* inode,unsigned int block_seq){
     file.close();
 }
 
-/***
- * 从磁盘读取inode
-*/
+//从磁盘读取inode
 Inode* read_inode(std::ifstream& file, int block_seq){
     Inode* inode = new Inode;
     file.seekg(BLOCK_SIZE*block_seq, std::ios::beg);
@@ -308,9 +218,7 @@ Inode* read_inode(std::ifstream& file, int block_seq){
     return inode;
 }
 
-/***
- * 为inode添加子目录/文件
-*/
+//为inode添加子目录/文件
 void add_child(Inode* parent, unsigned int child){
     for(int i = 0; i < 10; i++){
         if(parent->children[i] == 0){
@@ -322,9 +230,7 @@ void add_child(Inode* parent, unsigned int child){
     std::cout << "add_child error: children more than 10!" << std::endl;
 }
 
-/***
- * 为inode删除子目录/文件
-*/
+//为inode删除子目录/文件
 Inode* del_child(Inode* parent, unsigned int child){
     for(int i = 0; i < 10; i++){
         if(parent->children[i] == child){
@@ -338,12 +244,8 @@ Inode* del_child(Inode* parent, unsigned int child){
     return nullptr;
 }
 
-/*---------------------------------------------位图操作----------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-/***
- * 将位图对应位置置1，并将磁盘中的位图更新
-*/
+/*位图操作*/
+//将位图对应位置置1，并将磁盘中的位图更新
 void set_busy(std::ofstream& disk, unsigned int index) {
     bit_map[index] = 1;
     disk.seekp(BLOCK_SIZE + index * sizeof(int), std::ios::beg);
@@ -351,28 +253,14 @@ void set_busy(std::ofstream& disk, unsigned int index) {
     disk.write((char*)&busy, sizeof(int));
 }
 
-/***
- * 将位图对应位置置0，并将磁盘中的位图更新
-*/
+//将位图对应位置置0，并将磁盘中的位图更新
 void set_free(std::ofstream& disk, unsigned int index) {
     bit_map[index] = 0;
     disk.seekp(BLOCK_SIZE + index * sizeof(int), std::ios::beg);
     int free = 0;
     disk.write((char*)&free, sizeof(int));
 }
-
-/***
- * 初始化位图
-*/
-void init_bit_map() {
-    for (int i = 0; i < 102; ++i) {
-        bit_map[i] = 1;
-    }
-}
-
-/***
- * 从磁盘读取位图
-*/
+//从磁盘读取位图
 void load_bit_map() {
     std::fstream disk = std::fstream("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
     disk.seekg(BLOCK_SIZE, std::ios::beg);
@@ -380,9 +268,7 @@ void load_bit_map() {
     disk.close();
 }
 
-/***
- * 从位图中找到一个空闲块，用于存储inode
-*/
+//从位图中找到一个空闲块，用于存储inode
 int find_block_for_inode() {
     for (int i = 102; i < 51251; ++i) {
         if (bit_map[i] == 0) {
@@ -392,9 +278,7 @@ int find_block_for_inode() {
     return -1;
 }
 
-/***
- * 从位图中找到一个空闲块，用于存储文件
-*/
+//从位图中找到一个空闲块，用于存储文件
 int find_block_for_file(){
     for (int i = 51251; i < 102400; ++i) {
         if (bit_map[i] == 0) {
@@ -404,12 +288,8 @@ int find_block_for_file(){
     return -1;
 }
 
-/*---------------------------------------------目录树操作---------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-/***
- * 由存储的inode生成同时包含目录和文件的树形结构
-*/ 
+/*目录树操作*/
+// 由存储的inode生成同时包含目录和文件的树形结构
 void load_dir(std::ifstream& file, Dir* dentry) {
     for (int i = 0; i < 10; ++i) {
         if (dentry->inode->children[i] != 0) {
@@ -426,9 +306,7 @@ void load_dir(std::ifstream& file, Dir* dentry) {
     }
 }
 
-/***
- * 递归删除目录树
-*/
+//递归删除目录树
 void del_dir(std::ofstream& file, Dir* dentry) {
     // std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
     for (auto it = dentry->files.begin(); it != dentry->files.end(); ++it) {
@@ -461,12 +339,8 @@ void del_dir(std::ofstream& file, Dir* dentry) {
     delete dentry;
 }
 
-/*---------------------------------------------路径相关----------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-/***
- * 输出当前路径
-*/
+/*路径操作*/
+//输出当前路径
 std::string show_path() {
     Dir* curr_dir = user_dir[curr_user];
     std::string path_return = "/";
@@ -490,9 +364,7 @@ std::string show_path() {
     return path_return;
 }
 
-/***
- * 切分路径
-*/
+//切分路径
 std::vector<std::string> cut_path(std::string path) {
     std::vector<std::string> res;
     std::string curr_path;
@@ -514,9 +386,7 @@ std::vector<std::string> cut_path(std::string path) {
     return res;
 }
 
-/***
- * 根据输入的path，返回指向对应的目录的指针
-*/
+//根据输入的path，返回指向对应的目录的指针
 Dir* get_ptr_by_path(std::string path) {
     Dir* curr_dir = user_dir[curr_user];
     if(path.empty()) return nullptr;
@@ -560,12 +430,8 @@ Dir* get_ptr_by_path(std::string path) {
     return nullptr;
 }
 
-/*----------------------------------------------块操作-----------------------------------------------------*/
-/*--------------------------------------------------------------------------------------------------------*/
-
-/***
- * 根据块号清空块
-*/
+/*块操作*/
+//根据块号清空块
 void clean_block(unsigned int index) {
     std::fstream disk = std::fstream("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
     disk.seekp(BLOCK_SIZE * index, std::ios::beg);
@@ -575,9 +441,7 @@ void clean_block(unsigned int index) {
     disk.close();
 }
 
-/***
- * 将content写入磁盘中的index块
-*/
+//将content写入磁盘中的index块
 std::string write_file_block(std::ofstream& disk,std::string content, unsigned int index) {
     if(content.size() > BLOCK_SIZE){
         std::cout << "write_file_block error: content size more than max size of file!" << std::endl;
@@ -592,9 +456,7 @@ std::string write_file_block(std::ofstream& disk,std::string content, unsigned i
     return "write: successfully write into file\n";
 }
 
-/***
- * 从磁盘中的index块读取文件存储内容
-*/
+//从磁盘中的index块读取文件存储内容
 std::string read_file_block(std::ifstream& disk, unsigned int index){
     disk.seekg(BLOCK_SIZE * index, std::ios::beg);
     char buf[BLOCK_SIZE] = {0};
@@ -603,12 +465,7 @@ std::string read_file_block(std::ifstream& disk, unsigned int index){
     return content;
 }
 
-/*----------------------------------------------- 功能函数 --------------------------------------------------*/
-/*----------------------------------------------------------------------------------------------------------*/
-
-/***
- * info命令
-*/
+/*功能函数*/
 std::string info() {
     std::cout << "info" << std::endl;
     std::stringstream output;
@@ -629,9 +486,6 @@ std::string info() {
     return response;
 }
 
-/***
- * cd命令
-*/
 std::string cd(std::string path = "") {
     std::stringstream output;
     std::string response;
@@ -668,9 +522,6 @@ std::string cd(std::string path = "") {
     }
 }
 
-/***
- * dir命令
-*/
 std::string dir(std::string arg) {
     Dir* curr_dir = user_dir[curr_user];
     std::stringstream output;
@@ -744,9 +595,6 @@ std::string dir(std::string arg) {
     return response;
 }
 
-/***
- * md命令
-*/
 std::string md(std::string name = "") {
     Dir* curr_dir = user_dir[curr_user];
     std::stringstream output;
@@ -826,9 +674,6 @@ std::string md(std::string name = "") {
     return response;
 }
 
-/***
- * rd命令
-*/
 std::string rd(std::string name) {
     Dir* curr_dir = user_dir[curr_user];
     std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
@@ -908,9 +753,6 @@ std::string rd(std::string name) {
     return response;
 }
 
-/***
- * del命令
-*/
 std::string newfile(std::string name = "") {
     Dir* curr_dir = user_dir[curr_user];
     std::stringstream output;
@@ -989,9 +831,6 @@ std::string newfile(std::string name = "") {
     return response;
 }
 
-/***
- * del命令
-*/
 std::string cat(std::string name) {
     Dir* curr_dir = user_dir[curr_user];
     std::string response;
@@ -1063,9 +902,6 @@ std::string cat(std::string name) {
     return content;
 }
 
-/***
- * write命令
-*/
 std::string copy(std::string arg1 = "", std::string arg2 = "") {
     Dir* curr_dir = user_dir[curr_user];
     if (arg1.empty() || arg2.empty()) {
@@ -1172,9 +1008,6 @@ std::string copy(std::string arg1 = "", std::string arg2 = "") {
     }
 }
 
-/***
- * write命令
-*/
 std::string del(std::string name = "") {
     Dir* curr_dir = user_dir[curr_user];
     if (name.empty()) {
@@ -1245,9 +1078,6 @@ std::string del(std::string name = "") {
     return "del: remove file '" + name + "'\n";
 }
 
-/***
- * write命令的检查函数，检查文件是否存在、是否为文件、是否正在被写入
-*/
 std::string write_check(std::string name){
     Dir* curr_dir = user_dir[curr_user];
     std::string response;
@@ -1321,14 +1151,11 @@ std::string write_check(std::string name){
     write_inode(parent_directory->files[del_file_name]->inode, parent_directory->files[del_file_name]->inode->block_seq);
     set_busy(file, parent_directory->files[del_file_name]->inode->children[0]);
     file_lock_seq[curr_user] = parent_directory->files[del_file_name]->inode->children[0];
-    std::cout << "Please input the content you want to write into the file. Press 'ESC + Enter' to finish." << std::endl;
-    response = "Please input the content you want to write into the file. Press 'ESC + Enter' to finish.\n";
+    std::cout << "Input the content end with $" << std::endl;
+    response = "Input the content end with $\n";
     return response;
 }
 
-/***
- * write命令
-*/
 std::string write(std::string content) {
     std::ofstream file("disk.bin", std::ios::binary | std::ios::in | std::ios::out);
     // 写入传回来的text，text中可能带有空格、换行符等
@@ -1342,9 +1169,6 @@ std::string write(std::string content) {
     return response;
 }
 
-/***
- * check命令
-*/
 std::string help(){
     std::stringstream output;
     output << "-------------------Help----------------------" << std::endl;
@@ -1380,18 +1204,8 @@ std::string help(){
     return response;
 }
 
-/***
- * check命令
-*/
 std::string check(){
     // 检查文件系统是否正常
     std::cout << "Everything is OK" << std::endl;
     return "Everything is OK\n";
-}
-
-/***
- * exit命令
-*/
-void exit() {
-    std::cout<<"exit"<<std::endl;
 }
