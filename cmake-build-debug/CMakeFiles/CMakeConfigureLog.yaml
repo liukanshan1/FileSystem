@@ -515,3 +515,38 @@ events:
       
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.26/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.26/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.26/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.26/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.26/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)"
+      - "/usr/lib/x86_64-linux-gnu/cmake/boost_thread-1.74.0/boost_thread-config.cmake:116 (find_dependency)"
+      - "/usr/lib/x86_64-linux-gnu/cmake/boost_log-1.74.0/boost_log-config.cmake:100 (find_package)"
+      - "/usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake:141 (find_package)"
+      - "/usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake:258 (boost_find_component)"
+      - "/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.26/Modules/FindBoost.cmake:594 (find_package)"
+      - "CMakeLists.txt:15 (find_package)"
+    directories:
+      source: "/home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-Sp5KSr"
+      binary: "/home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-Sp5KSr"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: /home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-Sp5KSr
+        
+        Run Build Command(s):/home/lks/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_19e31 && [1/2] /usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_19e31.dir/src.c.o -c /home/lks/Desktop/Repo/file-system/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-Sp5KSr/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_19e31.dir/src.c.o -o cmTC_19e31   && :
+        
+      exitCode: 0
+...

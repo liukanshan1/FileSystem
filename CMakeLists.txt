@@ -9,8 +9,12 @@ set(BOOST_ROOT "/usr/local/include/boost")
 include_directories(/usr/local/include)
 #添加库文件搜索路径
 link_directories(/usr/local/lib)
-
+find_package(Boost REQUIRED COMPONENTS log)
 
 add_executable(file_system file_system.cpp)
 add_executable(shell shell.cpp)
 add_executable(shell2 shell.cpp)
+
+target_link_libraries(file_system PRIVATE Boost::log)
+
+

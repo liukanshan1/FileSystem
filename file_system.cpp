@@ -30,11 +30,11 @@ string apply_cmd(const string& command, int userId) {
         response = info();
     }
     else if (args[0] == "write"){
-        std::cout << "write" << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "write" << std::endl;
         response = write_check(args[1]);
     }
     else if(args[0] == "#writing"){
-        std::cout << "#writing" << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "#writing" << std::endl;
         std::string context = command.substr(9);
         response = write(context);
     }
@@ -44,7 +44,7 @@ string apply_cmd(const string& command, int userId) {
         }
         else {
             response = "cd: too many arguments\n";
-            std::cout << "cd: too many arguments" << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "cd: too many arguments" << std::endl;
         }
     }
     else if(args[0] == "help"){
@@ -56,7 +56,7 @@ string apply_cmd(const string& command, int userId) {
         }
         else {
             response = "dir: too many arguments\n";
-            std::cout << "dir: too many arguments" << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "dir: too many arguments" << std::endl;
         }
     }
     else if (args[0] == "md") {
@@ -79,7 +79,7 @@ string apply_cmd(const string& command, int userId) {
             response = cat(args[1]);
             response += "\n";
         } else {
-            std::cout << "cat: too many arguments" << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "cat: too many arguments" << std::endl;
             response = "cat: too many arguments\n";
         }
     }
@@ -92,7 +92,7 @@ string apply_cmd(const string& command, int userId) {
         }
     }
     else if (args[0] == "exit") {
-        std::cout << userId << " exit successfully!" << std::endl;
+        BOOST_LOG_TRIVIAL(info) << userId << " exit successfully!" << std::endl;
         response = "exit successfully!\n";
         remove_user(userId);
         remove_user_ptr(userId);
@@ -103,7 +103,7 @@ string apply_cmd(const string& command, int userId) {
 //    else if (args[0].empty()) continue;
     else {
         response = args[0] + ": command not found\n";
-        cout << args[0] << ": command not found" << endl;
+        BOOST_LOG_TRIVIAL(info) << args[0] << ": command not found" << endl;
     }
     return response;
 }
@@ -130,7 +130,7 @@ int main() {
             string s;
             string id = num_to_str(userId);
             if (!is_login(userId)) {
-                std::cout << userId << "login successfully!" << std::endl;
+                BOOST_LOG_TRIVIAL(info) << userId << "login successfully!" << std::endl;
                 response = "Login successfully!\n";
                 // 创建用户
                 s = "vmsg";
@@ -146,7 +146,7 @@ int main() {
                 user_record.push_back(user);
                 add_user_ptr(userId);
             } else {
-                std::cout << userId << " have already logged in!" << std::endl;
+                BOOST_LOG_TRIVIAL(info) << userId << " have already logged in!" << std::endl;
                 response = "You have already logged in!\n";
             }
 
@@ -172,8 +172,8 @@ int main() {
             *user.vcmd = false;
             Message* cmd = user.cmd;
             curr_user = cmd->userId;
-            cout << "User " << curr_user << " : ";
-            cout << "command: " << cmd->message << endl;
+            BOOST_LOG_TRIVIAL(info) << "User " << curr_user << " : ";
+            BOOST_LOG_TRIVIAL(info) << "command: " << cmd->message << endl;
             // 执行命令并将结果存入共享内存
             response = apply_cmd(cmd->message, curr_user);
             Message resp_msg = Message();

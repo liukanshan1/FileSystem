@@ -7,6 +7,7 @@
 #include <map>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_semaphore.hpp>
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 using namespace boost;
