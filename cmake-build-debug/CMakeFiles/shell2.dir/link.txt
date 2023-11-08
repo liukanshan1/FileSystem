@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/shell2.dir/shell.cpp.o -o shell2   -L/usr/local/lib 

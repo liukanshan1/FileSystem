@@ -510,14 +510,19 @@ string cd(string path = "") {
     Dir* cd_directory = get_ptr_by_path(path);
     if (cd_directory) {
         last_dir = user_dir[curr_user];
+        if (cd_directory->inode->creator != num_to_str(curr_user)){
+            response += "No Permission!!!\n";
+            BOOST_LOG_TRIVIAL(debug)<< response << endl;
+            return response;
+        }
         user_dir[curr_user] = cd_directory;
         response += show_path();
-        BOOST_LOG_TRIVIAL(debug)<<endl << endl;
+        BOOST_LOG_TRIVIAL(debug)<< response << endl;
         return response;
     } else {
         output << "cd: " << "No such file or directory called '"<< path << "'" << endl;
         response = output.str();
-        BOOST_LOG_TRIVIAL(debug)<<endl <<response;
+        BOOST_LOG_TRIVIAL(debug)<< response << endl;
         return response;
     }
 }
