@@ -38,7 +38,7 @@ string apply_cmd(const string& command, int userId) {
         string context = command.substr(9);
         response = write(context);
     }
-    else if (args[0] == "cd") {
+    else if (args[0] == "cd") { //check permission
         if (args.size() == 2) {
             response = cd(args[1]);
         }
@@ -64,7 +64,7 @@ string apply_cmd(const string& command, int userId) {
             response += md(args[i]);
         }
     }
-    else if (args[0] == "rd") {
+    else if (args[0] == "rd") { //check permission
         for (int i = 1; i < (int)args.size(); i++) {
             response += rd(args[i]);
         }
@@ -74,7 +74,7 @@ string apply_cmd(const string& command, int userId) {
             response += newfile(args[i]);
         }
     }
-    else if (args[0] == "cat") {
+    else if (args[0] == "cat") { //check permission
         if (args.size() == 2) {
             response = cat(args[1]);
             response += "\n";
@@ -86,7 +86,7 @@ string apply_cmd(const string& command, int userId) {
     else if (args[0] == "copy") {
         response = copy(args[1], args[2]);
     }
-    else if (args[0] == "del") {
+    else if (args[0] == "del") { //check permission
         for (int i = 1; i < (int)args.size(); i++) {
             response += del(args[i]);
         }

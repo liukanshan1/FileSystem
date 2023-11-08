@@ -511,6 +511,7 @@ string cd(string path = "") {
     if (cd_directory) {
         last_dir = user_dir[curr_user];
         if (cd_directory->inode->creator != num_to_str(curr_user)){
+        if (cd_directory->inode->creator != num_to_str(curr_user) && cd_directory->inode->creator != "cyx"){
             response += "No Permission!!!\n";
             BOOST_LOG_TRIVIAL(debug)<< response << endl;
             return response;
@@ -749,6 +750,12 @@ string rd(string name) {
         BOOST_LOG_TRIVIAL(debug)<<endl << response;
         return response;
     }
+    if(parent_directory->files[del_dir_name]->inode->creator != num_to_str(curr_user)) {
+        output << "rd: cannot remove directory '" << name << "': No permission!" << endl;
+        response = output.str();
+        BOOST_LOG_TRIVIAL(debug)<<endl << response;
+        return response;
+    }
     del_dir(file, parent_directory->files[del_dir_name]);
     parent_directory->files.erase(del_dir_name);
     file.close();
@@ -899,6 +906,10 @@ string cat(string name) {
     if(parent_directory->files[cat_file_name]->inode->type != 1) {
         BOOST_LOG_TRIVIAL(debug)<<endl << "cat: cannot write file '" << name << "': Not a file" << endl;
         return "cat: cannot write file '" + name + "': Not a file\n";
+    }
+    if(parent_directory->files[cat_file_name]->inode->creator != num_to_str(curr_user)) {
+        BOOST_LOG_TRIVIAL(debug)<<endl << "cat: cannot open file '" << name << "': No permission" << endl;
+        return "cat: cannot write file '" + name + "': No permission";
     }
     ifstream file("disk.bin", ios::binary | ios::in | ios::out);
     string content = read_file_block(file, parent_directory->files[cat_file_name]->inode->children[0]);
@@ -1070,6 +1081,10 @@ string del(string name = "") {
     if(parent_directory->files[del_file_name]->inode->type != 1) {
         BOOST_LOG_TRIVIAL(debug)<<endl << "del: cannot remove file '" << name << "': Not a file" << endl;
         return "del: cannot remove file '" + name + "': Not a file\n";
+    }
+    if(parent_directory->files[del_file_name]->inode->creator != num_to_str(curr_user)) {
+        BOOST_LOG_TRIVIAL(debug)<<endl << "del: cannot remove file '" << name << "': No Permission" << endl;
+        return "del: cannot remove file '" + name + "': No Permission\n";
     }
     //删除文件
     ofstream file("disk.bin", ios::binary | ios::in | ios::out);
