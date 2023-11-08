@@ -923,13 +923,7 @@ string copy(string arg1 = "", string arg2 = "") {
         BOOST_LOG_TRIVIAL(debug)<<endl << "copy: missing operand" << endl;
         return "copy: missing operand\n";
     }
-    //拷贝文件，除支持模拟Linux文件系统内部的文件拷贝外，还支持host文件系统与模拟Linux文件系统间的文件拷贝，
-    //host文件系统的文件命名为<host>…，如：将windows下D：盘的文件\data\sample\test.txt文件拷贝到模拟Linux文件系统中的/test/data目录，
-    //windows下D：盘的当前目录为D：\data，则使用命令：
-    //simdisk copy <host>D：\data\sample\test.txt /test/data
-    //或者：simdisk copy <host>D：sample\test.txt /test/data 
-    //实现host文件系统与模拟Linux文件系统间的文件拷贝
-    if(arg1[0] = '<'){
+    if(arg1[0] == '<'){
         //被复制的文件来自host文件系统，路径以<host>开头
         //检查arg1在host文件系统中是否存在
         string host_path;
@@ -946,48 +940,22 @@ string copy(string arg1 = "", string arg2 = "") {
         FILE* fp = fopen(host_path.c_str(), "r");
         if(fp == NULL){
             BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg1 << "': No such file or directory in <host>" << endl;
-            return "copy: cannot stat '" + arg1 + "': No such file or directory in <host>\n";
-        }else{
             fclose(fp);
+            return "copy: cannot stat '" + arg1 + "': No such file or directory in <host>\n";
         }
+        fclose(fp);
         //分割arg1，得到文件名
-        string filename;
-        filename = splitpath[splitpath.size() - 1];
-        //检查arg2是否存在
-        Dir* paste_directory = get_ptr_by_path(arg2);
-        if (paste_directory == nullptr) {
-            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': No such directory" << endl;
-            return "copy: cannot stat '" + arg2 + "': No such directory\n";
-        }
-        else{
-            //分割arg2，得到文件被复制到的最后一级目录名path
-            string path;
-            vector<string> splitpath2 = cut_path(arg2);
-            path = splitpath2[splitpath2.size() - 1];
-            //检查path是否为目录
-            if(paste_directory->inode->type != 0) {
-                BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': Not a directory" << endl;
-                return "copy: cannot stat '" + arg2 + "': Not a directory\n";
-            }
-            //在path目录下创建一个新文件，文件名为filename
-            Inode* inode = new Inode();
-            inode->type = 1;
-            inode->size = 0;
-            Dir* dentry = new Dir();
-            dentry->inode = inode;
-            dentry->name = filename;
-            dentry->parent = paste_directory;
-            paste_directory->files[filename] = dentry;
-            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: successfully copy '" << arg1 << "' to '" << arg2 << "'" << endl;
-            return "copy: successfully copy '" + arg1 + "' to '" + arg2 + "'\n";
-        }
+        string filename = splitpath[splitpath.size() - 1];
+        string path = arg2 + filename;
+        newfile(path);
+        string src = readFileIntoString(host_path);
+        write_check(path);
+        write(src);
+        BOOST_LOG_TRIVIAL(debug) << "copy: successfully copy " << arg1 << " to " << arg2 << endl;
+        return "copy: successfully copy '" + arg1 + "' to '" + arg2 + "'\n";
     }
     else{
         //实现simdisk内部文件的copy
-        //分割arg1，得到文件名
-        string filename;
-        vector<string> splitpath = cut_path(arg1);
-        filename = splitpath[splitpath.size() - 1];
         //逐级检查arg1是否存在
         Dir* copy_directory = get_ptr_by_path(arg1);
         if (copy_directory == nullptr) {
@@ -997,28 +965,16 @@ string copy(string arg1 = "", string arg2 = "") {
         //检查arg2是否存在
         Dir* paste_directory = get_ptr_by_path(arg2);
         if (paste_directory == nullptr) {
-            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': No such directory" << endl;
+            BOOST_LOG_TRIVIAL(debug) << endl << "copy: cannot stat '" << arg2 << "': No such directory" << endl;
             return "copy: cannot stat '" + arg2 + "': No such directory\n";
         }
-        //分割arg2，得到文件被复制到的最后一级目录名path
-        string path;
-        vector<string> splitpath2 = cut_path(arg2);
-        path = splitpath2[splitpath2.size() - 1];
-        //检查path是否为目录
-        if(paste_directory->inode->type != 0) {
-            BOOST_LOG_TRIVIAL(debug)<<endl << "copy: cannot stat '" << arg2 << "': Not a directory" << endl;
-            return "copy: cannot stat '" + arg2 + "': Not a directory\n";
-        }
-        //在path目录下创建一个新文件，文件名为filename
-        Inode* inode = new Inode();
-        inode->type = 1;
-        inode->size = 0;
-        Dir* dentry = new Dir();
-        dentry->inode = inode;
-        dentry->name = filename;
-        dentry->parent = paste_directory;
-        paste_directory->files[filename] = dentry;
-        BOOST_LOG_TRIVIAL(debug)<<endl << "copy: successfully copy '" << arg1 << "' to '" << arg2 << "'" << endl;
+        string path = arg2 + copy_directory->name;
+        newfile(path);
+        string src = cat(arg1);
+        src = src.c_str();
+        write_check(path);
+        write(src);
+        BOOST_LOG_TRIVIAL(debug) << "copy: successfully copy " << arg1 << " to " << arg2 << endl;
         return "copy: successfully copy '" + arg1 + "' to '" + arg2 + "'\n";
     }
 }

@@ -1060,4 +1060,8 @@ CMakeFiles/shell.dir/shell.cpp.o: /home/lks/Repo/File-system/shell.cpp \
  /usr/include/boost/log/detail/code_conversion.hpp \
  /usr/include/boost/log/detail/is_character_type.hpp \
  /usr/include/boost/log/utility/string_literal_fwd.hpp \
- /usr/include/boost/log/utility/formatting_ostream_fwd.hpp
+ /usr/include/boost/log/utility/formatting_ostream_fwd.hpp \
+ /usr/include/c++/11/fstream \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
+ /usr/include/c++/11/bits/fstream.tcc

@@ -8,6 +8,7 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_semaphore.hpp>
 #include <boost/log/trivial.hpp>
+#include <fstream>
 
 using namespace std;
 using namespace boost;
@@ -118,4 +119,14 @@ void show_help(){
     std::cout << std::setw(15) << "Check if the filesystem is OK" << std::endl;
     std::cout << std::setw(15) << "exit";
     std::cout << std::setw(15) << "Exit the system" << std::endl;
+}
+
+string readFileIntoString(const string& path) {
+    ifstream input_file(path);
+    if (!input_file.is_open()) {
+        cerr << "Could not open the file - '"
+             << path << "'" << endl;
+        exit(EXIT_FAILURE);
+    }
+    return string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
 }
