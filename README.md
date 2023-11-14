@@ -124,7 +124,7 @@ l shell.cpp：shell的实现，支持多开启动
 
 为了实现多个Shell可以同时向文件系统发出指令，同时不引起任何竞争和死锁，我设计了如图所示的IPC结构。
 
-  ![](./img/1.png)
+  ![](https://github.com/liukanshan1/FileSystem/blob/master/img/1.png?raw=true)
 
 如图所示，针对文件系统，我设置了一个信号量用于提示文件系统处理命令，单独设置了登录消息在共享内存中的位置。
 
@@ -138,10 +138,10 @@ l shell.cpp：shell的实现，支持多开启动
 
 现在介绍Shell登录过程与文件系统的执行过程。如图所示，文件系统进程等待信号量0。Shell1向共享内存中的登录消息区域写入登录请求并设置待处理标志为True，然后唤醒文件系统进程，等待文件系统处理完成（信号量1）。文件系统进程处理登录消息并设置待处理标志为False，将回复写入Shell1的回复区域中，唤醒Shell1。
 
- ![](./img/2.png)
+ ![](https://github.com/liukanshan1/FileSystem/blob/master/img/2.png?raw=true)
 
 ### 2.1.3 IPC消息传递
 
 下面针对多个Shell同时对文件系统进程发送请求的场景进行分析。如图所示，文件系统进程等待信号量0。Shell1和Shell2向共享内存中的消息区域写入登录请求并设置待处理标志为True，然后唤醒文件系统进程。文件系统将依次处理请求，处理完成时唤醒对应的Shell进程。此过程不会发生任何竞争和死锁。
 
-![](./img/3.png)
+![](https://github.com/liukanshan1/FileSystem/blob/master/img/3.png?raw=true)
